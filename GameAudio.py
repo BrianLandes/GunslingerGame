@@ -33,9 +33,9 @@ class GameAudio(object):
             self.enemy_death_sfx.append( pygame.mixer.Sound(
                 'enemy_death_0' + str(i) + '_sfx.wav') )
 
-        self.music_track = pygame.mixer.music.load(
-            '155139__burning-mir__action-music-loop-with-dark-ambient-drones.wav')
-        pygame.mixer.music.play(loops = -1 )
+        # self.music_track = pygame.mixer.music.load(
+        #     '155139__burning-mir__action-music-loop-with-dark-ambient-drones.wav')
+        # pygame.mixer.music.play(loops = -1 )
 
     def PlaySound(self,sound_fx_list):
         # given a list of similar sound effects, choose a random one
