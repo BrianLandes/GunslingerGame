@@ -9,22 +9,24 @@ import random
 import time
 from GameAudio import GameAudio
 from GameObject import GameObject
+from GameObject import Tree
 from Weapon import Weapon
 from Utilities import GetDistance
+from LevelGenerator import LevelGenerator
 
 
 ############
 # lay out some constants here
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 800
 
-TARGET_FPS = 60
+TARGET_FPS = 55
 
 POINT_FONT = "fonts/LinBiolinum_RBah.ttf"
 POINTS_HEIGHT = int(SCREEN_HEIGHT*0.05)
 POINTS_COLOR = (0,0,0)
 
-PLAYER_MOVE_SPEED = 5
+PLAYER_MOVE_SPEED = 10
 PLAYER_RADIUS = 25
 
 
@@ -60,11 +62,24 @@ class Game(object):
         self.game_objects.append(self.player)
         self.weapon = Weapon()
 
+        # Level
+        self.level = LevelGenerator(self)
+
+        for i in range(5):
+            tree = Tree(self)
+            tree.x = SCREEN_WIDTH * random.random()
+            tree.y = SCREEN_HEIGHT * random.random()
+            self.game_objects.append(tree)
+
         # Running measurements
         self.last_time = time.time()
+        self.delta_time = 0
         self.mouse_x = 0
         self.mouse_y = 0
         self.score = 0
+
+    def AddObject(self,game_object):
+        self.game_objects.append(game_object)
 
     def DestroyObject(self, game_object):
         game_object.dead = True
@@ -74,9 +89,9 @@ class Game(object):
         while self.playing:
             # lets keep track of how much time has passed between the last frame and this one
             current_time = time.time()
-            delta_time = current_time - self.last_time
+            self.delta_time = current_time - self.last_time
             # if are game is running faster than our target FPS then pause for a tick
-            if delta_time < 1/TARGET_FPS:
+            if self.delta_time < 1/TARGET_FPS:
                 continue
 
             #########
@@ -110,6 +125,13 @@ class Game(object):
             else:
                 self.player.vel_x = 0
 
+            # if the player is moving diagonally, reduce the speed so its only as fast as moving in one direction
+            if abs(self.player.vel_x) + abs(self.player.vel_y) > PLAYER_MOVE_SPEED:
+                # pythagoream thereom baby
+                n = math.sqrt(2)/2
+                self.player.vel_x *= n
+                self.player.vel_y *= n
+
             ###########
             # Update game objects
             # we'll copy the game object list and iterate through the copy so that
@@ -123,6 +145,9 @@ class Game(object):
             # since the camera follows the player just set the world origin to the player's position
             self.world_x = int(-self.player.x + SCREEN_WIDTH * 0.5)
             self.world_y = int(-self.player.y + SCREEN_HEIGHT * 0.5)
+
+            # update the level
+            self.level.Update()
 
             #########
             # draw

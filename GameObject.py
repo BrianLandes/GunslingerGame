@@ -3,7 +3,7 @@
 # Final Project
 # Game Object class
 
-import pygame, sys
+import pygame, sys, random
 from Utilities import GetDistance
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
@@ -48,6 +48,7 @@ class GameObject(object):
 # constants
 TREE_EXPIRE_RANGE = 1000
 TREE_SIZE = 70
+TREE_SIZE_VARIANCE = 30 # + or - this many units in size randomly
 
 # trees will all reuse the same images so we only need to load it once
 treeSprite = pygame.image.load('tree_sprite.png')
@@ -56,13 +57,19 @@ class Tree(GameObject):
     def __init__(self, game):
         #override/extend the original constructor
         super().__init__(game)# call the original constructor
-        self.sprite = treeSprite
+
         self.expire_range = TREE_EXPIRE_RANGE
-        self.radius = TREE_SIZE
+        self.radius = int( TREE_SIZE + random.random()*TREE_SIZE_VARIANCE*2.0 - TREE_SIZE_VARIANCE)
+
+        self.sprite = pygame.transform.scale( treeSprite, (self.radius*2,self.radius*2) )
+        # self.sprite = treeSprite
 
     def Draw(self):
         # override the original GameObject.Update method
-        pass
+        # our (x,y) is the center, but it blits to the top right
+        x = int(self.x + self.game.world_x - self.radius)
+        y = int(self.y + self.game.world_y - self.radius )
+        self.game.screen.blit(self.sprite, ( x,y ) )
 
     def Update(self):
         # override the original GameObject.Update method

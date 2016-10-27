@@ -1,5 +1,5 @@
 
-import math
+import math,random
 
 def GetAngle( x, y ):
     # get the angle of the vector<x,y>
@@ -39,6 +39,13 @@ def GetDistance( gameObjectA, gameObjectB ):
     y = gameObjectA.y - gameObjectB.y
     return math.sqrt( x**2 + y**2 )
 
+
+def Distance( x1,y1,x2,y2 ):
+    # returns the distance between the two points
+    x = x1 - x2
+    y = y1 - y2
+    return math.sqrt( x**2 + y**2 )
+
 def RepositionBoth( objectA, objectB ):
     # assumes these objects are overlapping and pushes them away from each other
     # until they aren't touching anymore
@@ -67,3 +74,21 @@ def Reposition( objectA, objectB ):
     r = objectB.radius + objectA.radius
     objectA.x = objectB.x + math.cos(theta) * r
     objectA.y = objectB.y + math.sin(theta) * r
+
+def RandomVector( vx, vy, angle_variance, magnitude, magnitude_variance ):
+    # returns a vector with a similar direction to vector <vx, vy>
+    # with the direction randomized by + or - up to angle_variance (in radians)
+    # and a magnitude/length of the given magnitude + or - up to magnitude_variance
+
+    # get a random value between +angle_variance and -angle_variance
+    var = random.random() * 2.0 * angle_variance - angle_variance
+    # get the angle of <vx,vy> and add our randomness
+    theta = GetAngle( vx, vy ) + var
+    # get a random value between +magnitude_variance and -magnitude_variance
+    mag_var = random.random() * 2.0 * magnitude_variance - magnitude_variance
+    # get the sum of the desired magnitude and our randomness
+    m = magnitude + mag_var
+    # turn our angle and magnitude into a vector
+    x = math.cos(theta) * m
+    y = math.sin(theta) * m
+    return x,y
