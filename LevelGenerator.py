@@ -15,14 +15,14 @@ class LevelGenerator(object):
         self.game = game # a reference to the GunslingerGame class
         self.type = SNAKE
 
-        self.spawn_rate = 200 # distance the player must move each time we spawn
-        self.scatter_angle_variance = math.pi * 0.5 # up to 45 degrees in either direction
-        self.scatter_spawning_distance = 600
+        self.spawn_rate = 100 # distance the player must move each time we spawn
+        self.scatter_angle_variance = math.pi * 0.125 # up to 45 degrees in either direction
+        self.scatter_spawning_distance = 1100
         self.distance_variance = 100
 
         self.snake_angle_variance = math.pi * 0.25
-        self.snake_min_spawn_distance = 200
-        self.snake_max_spawn_distance = 1000
+        # self.snake_min_spawn_distance = 200
+        self.snake_max_spawn_distance = 1300
 
         self.last_spawned_obstacle = None
         self.snake_vx = 0
@@ -86,13 +86,19 @@ class LevelGenerator(object):
             newx = self.last_spawned_obstacle.x + rx
             newy = self.last_spawned_obstacle.y + ry
 
-            # while Distance( newx, newy, self.game.player.x, self.game.player.y ) < self.scatter_spawning_distance:
-            #     # if the tree would spawn where the player can see then try to find another place
-            #     rx, ry = RandomVector(self.snake_vx,self.snake_vy,self.snake_angle_variance,
-            #                       self.last_spawned_obstacle.radius*2.0, 10 )
-            #
-            #     newx = self.last_spawned_obstacle.x + rx
-            #     newy = self.last_spawned_obstacle.y + ry
+            tries_left = 10
+            while Distance( newx, newy, self.game.player.x, self.game.player.y ) < self.scatter_spawning_distance:
+                # if the tree would spawn where the player can see then try to find another place
+                rx, ry = RandomVector(self.snake_vx,self.snake_vy,self.snake_angle_variance,
+                                  self.last_spawned_obstacle.radius*2.0, 10 )
+
+                newx = self.last_spawned_obstacle.x + rx
+                newy = self.last_spawned_obstacle.y + ry
+                tries_left -= 1
+                if tries_left is 0:
+                    self.last_spawned_obstacle = None
+                    print('Snake giving up')
+                    return # not only break out of the loop but give up on making a tree
 
             tree = Tree(self.game)
             tree.x = newx

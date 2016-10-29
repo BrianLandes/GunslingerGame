@@ -10,9 +10,11 @@ import time
 from GameAudio import GameAudio
 from GameObject import GameObject
 from GameObject import Tree
+from Enemy import Enemy
 from Weapon import Weapon
 from Utilities import GetDistance
 from LevelGenerator import LevelGenerator
+from TreeList import TreeList
 
 
 ############
@@ -71,12 +73,21 @@ class Game(object):
             tree.y = SCREEN_HEIGHT * random.random()
             self.game_objects.append(tree)
 
+        for i in range(10):
+            enemy = Enemy(self)
+            enemy.x = SCREEN_WIDTH * random.random()
+            enemy.y = SCREEN_HEIGHT * random.random()
+            self.game_objects.append(enemy)
+
         # Running measurements
         self.last_time = time.time()
         self.delta_time = 0
         self.mouse_x = 0
         self.mouse_y = 0
         self.score = 0
+
+        # layers for collision detection
+        self.enemies_layer = []
 
     def AddObject(self,game_object):
         self.game_objects.append(game_object)
@@ -134,6 +145,8 @@ class Game(object):
 
             ###########
             # Update game objects
+            # clear the collision layers
+            self.enemies_layer = []
             # we'll copy the game object list and iterate through the copy so that
             # we can remove dead elements from the original without getting tripped up
             object_list = self.game_objects.copy()
@@ -153,8 +166,13 @@ class Game(object):
             # draw
             # clear the screen
             self.screen.fill((220, 220, 200))
-            # draw the game objects
+
+            # sort the objects
+            object_sort_tree = TreeList()
             for game_object in self.game_objects:
+                object_sort_tree.Put(game_object.y, game_object)
+            # draw the game objects
+            for game_object in object_sort_tree.ToList():
                 game_object.Draw()
 
             # display what we've drawn to the screen

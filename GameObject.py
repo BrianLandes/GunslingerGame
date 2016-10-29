@@ -3,7 +3,7 @@
 # Final Project
 # Game Object class
 
-import pygame, sys, random
+import pygame, sys, random, os
 from Utilities import GetDistance
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
@@ -46,12 +46,18 @@ class GameObject(object):
 # Trees
 
 # constants
-TREE_EXPIRE_RANGE = 1000
+TREE_EXPIRE_RANGE = 5000
 TREE_SIZE = 70
 TREE_SIZE_VARIANCE = 30 # + or - this many units in size randomly
 
 # trees will all reuse the same images so we only need to load it once
-treeSprite = pygame.image.load('tree_sprite.png')
+treeSprites = []
+for folderName, subfolders, filenames in os.walk('sprites/trees/'):
+    # for each file we find in this folder
+    for filename in filenames:
+        #load a sound object and add it to our sfx list
+        image = pygame.image.load('sprites/trees/'+filename)
+        treeSprites.append( image )
 
 class Tree(GameObject):
     def __init__(self, game):
@@ -60,8 +66,8 @@ class Tree(GameObject):
 
         self.expire_range = TREE_EXPIRE_RANGE
         self.radius = int( TREE_SIZE + random.random()*TREE_SIZE_VARIANCE*2.0 - TREE_SIZE_VARIANCE)
-
-        self.sprite = pygame.transform.scale( treeSprite, (self.radius*2,self.radius*2) )
+        sprite = random.choice(treeSprites)
+        self.sprite = pygame.transform.scale( sprite, (self.radius*2,self.radius*2) )
         # self.sprite = treeSprite
 
     def Draw(self):

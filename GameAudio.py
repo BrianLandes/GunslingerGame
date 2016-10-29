@@ -2,7 +2,7 @@
 # Brian Landes
 # Final Project
 
-import pygame, sys
+import pygame, sys, os
 import random
 
 ############
@@ -23,15 +23,27 @@ class GameAudio(object):
         self.sound_channels = []
 
         # load some sounds
+        # for the gunshots sfx we'll just load everything in the audio/gunshots folder
         self.gunshot_sfx= []
-        for i in range(1,6):
-            self.gunshot_sfx.append( pygame.mixer.Sound('gunshot0' + str(i) + '_sfx.wav') )
-            self.gunshot_sfx[-1].set_volume(0.2)
+        for folderName, subfolders, filenames in os.walk('audio/gunshots'):
+            # for each file we find in this folder
+            for filename in filenames:
+                #load a sound object and add it to our sfx list
+                sound = pygame.mixer.Sound('audio/gunshots/'+filename)
+                # adjust the volume
+                sound.set_volume(0.2)
+                self.gunshot_sfx.append( sound )
+
 
         self.enemy_death_sfx= []
-        for i in range(1,4):
-            self.enemy_death_sfx.append( pygame.mixer.Sound(
-                'enemy_death_0' + str(i) + '_sfx.wav') )
+        for folderName, subfolders, filenames in os.walk('audio/enemy_death'):
+            # for each file we find in this folder
+            for filename in filenames:
+                #load a sound object and add it to our sfx list
+                sound = pygame.mixer.Sound('audio/enemy_death/'+filename)
+                # adjust the volume
+                sound.set_volume(0.2)
+                self.enemy_death_sfx.append( sound )
 
         # self.music_track = pygame.mixer.music.load(
         #     '155139__burning-mir__action-music-loop-with-dark-ambient-drones.wav')
