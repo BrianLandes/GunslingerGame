@@ -24,12 +24,16 @@ class Weapon(object):
         self.fire_rate = 0
         self.UpgradeWeapon()
 
+        self.next_upgrade = 100
+
     def UpgradeWeapon(self):
         self.level += 1
 
         self.bullet_rate = int( self.level/2 ) + 1
         self.spread = self.level*2  # an angle in degrees
         self.fire_rate = 0.2 - self.level * 0.01
+
+        self.next_upgrade = self.level * 100
 
     def Update(self):
         # Fire bullets

@@ -97,7 +97,7 @@ class LevelGenerator(object):
                 tries_left -= 1
                 if tries_left is 0:
                     self.last_spawned_obstacle = None
-                    print('Snake giving up')
+                    # print('Snake giving up')
                     return # not only break out of the loop but give up on making a tree
 
             tree = Tree(self.game)

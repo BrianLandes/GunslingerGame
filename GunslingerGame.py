@@ -16,6 +16,7 @@ from Weapon import Weapon
 from Utilities import GetDistance
 from LevelGenerator import LevelGenerator
 from EnemyGenerator import EnemyGenerator
+from CoinGenerator import CoinGenerator
 from TreeList import TreeList
 
 
@@ -39,7 +40,10 @@ DIAGONAL_MOD = math.sqrt(2)/2
 # initialization
 pygame.init()
 
-
+POINT_FONT = "fonts/LinBiolinum_RBah.ttf"
+pointFont = pygame.font.Font(POINT_FONT, 96)
+POINTS_HEIGHT = int(SCREEN_HEIGHT*0.05)
+POINTS_COLOR = (0,0,0)
 
 class Game(object):
     def __init__(self):
@@ -51,6 +55,8 @@ class Game(object):
         self.pointFont = pygame.font.Font(POINT_FONT, 96)
 
         self.game_objects = []
+
+        self.score = 0
 
         # Camera
         self.world_x = 0
@@ -80,6 +86,9 @@ class Game(object):
         # Enemies
         self.enemy_generator = EnemyGenerator(self)
 
+        # Coin Generator
+        self.coin_generator = CoinGenerator(self)
+
         # for i in range(10):
         #     enemy = Enemy(self)
         #     enemy.x = SCREEN_WIDTH * random.random()
@@ -102,6 +111,20 @@ class Game(object):
     def DestroyObject(self, game_object):
         game_object.dead = True
         self.game_objects.remove(game_object)
+
+    def DisplayPoints(self):
+        pointText = pointFont.render('$'+str(self.score), True, POINTS_COLOR, None)
+        TX, TY = pointText.get_size()
+        textWidth = int(POINTS_HEIGHT * (TX / TY))
+        pointText = pygame.transform.scale(pointText, (textWidth, POINTS_HEIGHT))
+        x = int(SCREEN_WIDTH * 0.95 - textWidth)
+        y = int(SCREEN_HEIGHT * 0.97 - POINTS_HEIGHT)
+        self.screen.blit(pointText, (x, y))
+
+    def AddPoints(self, value):
+        self.score += value
+        if self.score >= self.weapon.next_upgrade:
+            self.weapon.UpgradeWeapon()
 
     def Play(self):
         while self.playing:
@@ -164,6 +187,8 @@ class Game(object):
             # spawn more enemies sometimes
             self.enemy_generator.Update()
 
+            self.coin_generator.Update()
+
             # clear the collision layers
             # (we really only need to do this if objects have been added or removed since the last time)
             for flag in GameObject.COL_FLAGS:
@@ -208,6 +233,8 @@ class Game(object):
             # draw the game objects
             for game_object in object_sort_tree.ToList():
                 game_object.Draw()
+
+            self.DisplayPoints()
 
             # display what we've drawn to the screen
             pygame.display.flip()

@@ -13,7 +13,7 @@ from SpriteSheet import SpriteAnimator
 
 import math
 
-ENEMY_SIZE = 20
+ENEMY_SIZE = 25
 ENEMY_SPRITE_SIZE = 80
 ENEMY_MOVE_SPEED = 10.5
 
