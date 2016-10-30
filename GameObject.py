@@ -8,6 +8,13 @@ from Utilities import GetDistance
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
 
+#### Collision constants
+PLAYER = 0
+STATIC = 1
+ENEMY = 2
+BULLET = 3
+COL_FLAGS = [PLAYER,STATIC,ENEMY,BULLET]
+
 class GameObject(object):
     def __init__(self, game):
         self.game = game # a reference to the GunslingerGame class
@@ -19,6 +26,14 @@ class GameObject(object):
         self.color = ( 100, 100, 100 )
         self.dead = False
         self.expire_range = -1 # if this object becomes farther than this from the player then we can remove it
+        self.collision_flags = {}
+
+    def SetCollisionFlag(self, flag, bool_value = True):
+        self.collision_flags[flag] = bool_value
+
+    def GetCollisionFlag(self, flag ):
+        #defaults to False
+        self.collision_flags.get(flag,False)
 
     def Draw(self):
         pygame.draw.circle(self.game.screen, self.color, (
@@ -55,9 +70,15 @@ treeSprites = []
 for folderName, subfolders, filenames in os.walk('sprites/trees/'):
     # for each file we find in this folder
     for filename in filenames:
-        #load a sound object and add it to our sfx list
+        # sometimes Windows will make this file in your folders and we can't load that
+        if filename == 'Thumbs.db':
+            # so just skip it
+            continue
+        #load a sprite and add it to our availables sprites list
         image = pygame.image.load('sprites/trees/'+filename)
         treeSprites.append( image )
+
+
 
 class Tree(GameObject):
     def __init__(self, game):
@@ -69,10 +90,11 @@ class Tree(GameObject):
         sprite = random.choice(treeSprites)
         self.sprite = pygame.transform.scale( sprite, (self.radius*2,self.radius*2) )
         # self.sprite = treeSprite
+        self.SetCollisionFlag( STATIC )
 
     def Draw(self):
         # override the original GameObject.Update method
-        # our (x,y) is the center, but it blits to the top right
+        # our (x,y) is the center, but it blits to the top left
         x = int(self.x + self.game.world_x - self.radius)
         y = int(self.y + self.game.world_y - self.radius )
         self.game.screen.blit(self.sprite, ( x,y ) )

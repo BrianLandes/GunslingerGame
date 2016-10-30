@@ -81,7 +81,7 @@ class LevelGenerator(object):
         # if that distance is less than our spawning distance we'll spawn another obstacle to try and stay ahead
         if d < self.snake_max_spawn_distance:
             rx, ry = RandomVector(self.snake_vx,self.snake_vy,self.snake_angle_variance,
-                                  self.last_spawned_obstacle.radius*2.0, 10 )
+                                  self.last_spawned_obstacle.radius*3.0, 100 )
 
             newx = self.last_spawned_obstacle.x + rx
             newy = self.last_spawned_obstacle.y + ry

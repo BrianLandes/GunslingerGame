@@ -3,7 +3,8 @@
 # Final Project
 # October 27, 2016
 
-from GameObject import GameObject
+# from GameObject import GameObject
+import GameObject
 from Utilities import GetAngle
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
@@ -12,19 +13,20 @@ from SpriteSheet import SpriteAnimator
 
 import math
 
-ENEMY_SIZE = 40
-ENEMY_MOVE_SPEED = 7
+ENEMY_SIZE = 20
+ENEMY_SPRITE_SIZE = 80
+ENEMY_MOVE_SPEED = 10.5
 
-class Enemy(GameObject):
+class Enemy(GameObject.GameObject):
     def __init__(self, game):
         #override/extend the original constructor
         super().__init__(game)# call the original constructor
 
         self.color = (225,0,0)
         self.radius = ENEMY_SIZE
-
+        self.SetCollisionFlag( GameObject.ENEMY )
         self.sprite = SpriteAnimator('enemy_spritesheet.png', (3,2) )
-        self.sprite.Resize(self.radius*2,self.radius*2)
+        self.sprite.Resize(ENEMY_SPRITE_SIZE,ENEMY_SPRITE_SIZE)
         self.sprite.AddFrame(0,0)
         self.sprite.AddFrame(1,0)
         self.sprite.AddFrame(2,0)
@@ -60,10 +62,20 @@ class Enemy(GameObject):
         if CheckObjectCollision( self, self.game.player):
             # this will actually kill the player but for now just push them away
             Reposition( self, self.game.player )
+            # self.Destroy()
 
         # check each enemy against each other enemy
-        for other_enemy in self.game.enemies_layer:
+        for other_enemy in self.game.collision_layers[GameObject.ENEMY]:
+            if other_enemy is self:
+                continue
             if CheckObjectCollision( self, other_enemy ):
                 Reposition(self,other_enemy)
-        # add this enemy to the accumulating collision layer
-        self.game.enemies_layer.append(self)
+
+        # Check if this enemy was hit with a bullet
+        for bullet in self.game.collision_layers[GameObject.BULLET]:
+            if CheckObjectCollision( self, bullet ):
+                self.Destroy()
+                bullet.Destroy()
+                # play the enemy death
+                # PlaySound(enemy_death_sfx)
+                break

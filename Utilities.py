@@ -1,5 +1,5 @@
 
-import math,random
+import math,random,pygame
 
 def GetAngle( x, y ):
     # get the angle of the vector<x,y>
@@ -92,3 +92,4 @@ def RandomVector( vx, vy, angle_variance, magnitude, magnitude_variance ):
     x = math.cos(theta) * m
     y = math.sin(theta) * m
     return x,y
+

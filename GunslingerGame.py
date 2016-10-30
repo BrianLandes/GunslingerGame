@@ -9,11 +9,13 @@ import random
 import time
 from GameAudio import GameAudio
 from GameObject import GameObject
-from GameObject import Tree
+import GameObject
+# from GameObject import Tree
 from Enemy import Enemy
 from Weapon import Weapon
 from Utilities import GetDistance
 from LevelGenerator import LevelGenerator
+from EnemyGenerator import EnemyGenerator
 from TreeList import TreeList
 
 
@@ -31,6 +33,7 @@ POINTS_COLOR = (0,0,0)
 PLAYER_MOVE_SPEED = 10
 PLAYER_RADIUS = 25
 
+DIAGONAL_MOD = math.sqrt(2)/2
 
 ###########
 # initialization
@@ -54,30 +57,34 @@ class Game(object):
         self.world_y = 0
 
         # Player
-        self.player = GameObject(self) # gotta pass it a reference to the Game class
+        self.player = GameObject.GameObject(self) # gotta pass it a reference to the Game class
         self.player.radius = PLAYER_RADIUS
+        self.player.SetCollisionFlag( GameObject.PLAYER )
         self.player.x = SCREEN_WIDTH * 0.5
         self.player.y = SCREEN_HEIGHT * 0.5
         self.player.vel_x = 0
         self.player.vel_y = 0
         self.player.color = (25, 100, 250)
         self.game_objects.append(self.player)
-        self.weapon = Weapon()
+        self.weapon = Weapon(self)
 
         # Level
         self.level = LevelGenerator(self)
 
         for i in range(5):
-            tree = Tree(self)
+            tree = GameObject.Tree(self)
             tree.x = SCREEN_WIDTH * random.random()
             tree.y = SCREEN_HEIGHT * random.random()
             self.game_objects.append(tree)
 
-        for i in range(10):
-            enemy = Enemy(self)
-            enemy.x = SCREEN_WIDTH * random.random()
-            enemy.y = SCREEN_HEIGHT * random.random()
-            self.game_objects.append(enemy)
+        # Enemies
+        self.enemy_generator = EnemyGenerator(self)
+
+        # for i in range(10):
+        #     enemy = Enemy(self)
+        #     enemy.x = SCREEN_WIDTH * random.random()
+        #     enemy.y = SCREEN_HEIGHT * random.random()
+        #     self.game_objects.append(enemy)
 
         # Running measurements
         self.last_time = time.time()
@@ -87,7 +94,7 @@ class Game(object):
         self.score = 0
 
         # layers for collision detection
-        self.enemies_layer = []
+        self.collision_layers = {}
 
     def AddObject(self,game_object):
         self.game_objects.append(game_object)
@@ -120,6 +127,9 @@ class Game(object):
                 if event.type == pygame.MOUSEBUTTONUP and event.button is 1:
                     self.weapon.firing = False
 
+            # store the mouse pos for easy getting
+            self.mouse_x, self.mouse_y = pygame.mouse.get_pos()
+
             # Check for key presses and update the player's velocity
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_UP] or pressed[pygame.K_w]:
@@ -138,15 +148,36 @@ class Game(object):
 
             # if the player is moving diagonally, reduce the speed so its only as fast as moving in one direction
             if abs(self.player.vel_x) + abs(self.player.vel_y) > PLAYER_MOVE_SPEED:
-                # pythagoream thereom baby
-                n = math.sqrt(2)/2
-                self.player.vel_x *= n
-                self.player.vel_y *= n
+                self.player.vel_x *= DIAGONAL_MOD
+                self.player.vel_y *= DIAGONAL_MOD
+
 
             ###########
             # Update game objects
+
+            # update the weapon (fire bullets)
+            self.weapon.Update()
+
+            # update the level
+            self.level.Update()
+
+            # spawn more enemies sometimes
+            self.enemy_generator.Update()
+
             # clear the collision layers
-            self.enemies_layer = []
+            # (we really only need to do this if objects have been added or removed since the last time)
+            for flag in GameObject.COL_FLAGS:
+                self.collision_layers[flag] = []
+            # iterate through all our game objects and add them to any layers they apply to
+            for game_object in self.game_objects:
+                # go through each (if any) collision flags there are for this item
+                for key, value in game_object.collision_flags.items():
+                    # the key will be the collision flag
+                    # the value will be a bool for if it applies to this layer
+                    if value:
+                        # add it to the collision layer
+                        self.collision_layers[key].append( game_object )
+
             # we'll copy the game object list and iterate through the copy so that
             # we can remove dead elements from the original without getting tripped up
             object_list = self.game_objects.copy()
@@ -159,8 +190,7 @@ class Game(object):
             self.world_x = int(-self.player.x + SCREEN_WIDTH * 0.5)
             self.world_y = int(-self.player.y + SCREEN_HEIGHT * 0.5)
 
-            # update the level
-            self.level.Update()
+
 
             #########
             # draw
@@ -169,8 +199,12 @@ class Game(object):
 
             # sort the objects
             object_sort_tree = TreeList()
+            # just by putting them into the TreeList one by one we'll get them in ascending order
             for game_object in self.game_objects:
-                object_sort_tree.Put(game_object.y, game_object)
+                # sorted by they're y position
+                # that way when we draw them from highest on the screen to the lowest on the screen
+                # the ones below (and in front) will be drawn on top
+                object_sort_tree.Put(game_object.y + game_object.radius*0.5, game_object)
             # draw the game objects
             for game_object in object_sort_tree.ToList():
                 game_object.Draw()
