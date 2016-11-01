@@ -13,6 +13,7 @@ import GameObject
 # from GameObject import Tree
 from Enemy import Enemy
 from Weapon import Weapon
+import Player
 from Utilities import GetDistance
 from LevelGenerator import LevelGenerator
 from EnemyGenerator import EnemyGenerator
@@ -30,11 +31,6 @@ TARGET_FPS = 55
 POINT_FONT = "fonts/LinBiolinum_RBah.ttf"
 POINTS_HEIGHT = int(SCREEN_HEIGHT*0.05)
 POINTS_COLOR = (0,0,0)
-
-PLAYER_MOVE_SPEED = 10
-PLAYER_RADIUS = 25
-
-DIAGONAL_MOD = math.sqrt(2)/2
 
 ###########
 # initialization
@@ -63,14 +59,8 @@ class Game(object):
         self.world_y = 0
 
         # Player
-        self.player = GameObject.GameObject(self) # gotta pass it a reference to the Game class
-        self.player.radius = PLAYER_RADIUS
-        self.player.SetCollisionFlag( GameObject.PLAYER )
-        self.player.x = SCREEN_WIDTH * 0.5
-        self.player.y = SCREEN_HEIGHT * 0.5
-        self.player.vel_x = 0
-        self.player.vel_y = 0
-        self.player.color = (25, 100, 250)
+        self.player = Player.Player(self) # gotta pass it a reference to the Game class
+
         self.game_objects.append(self.player)
         self.weapon = Weapon(self)
 
@@ -156,24 +146,18 @@ class Game(object):
             # Check for key presses and update the player's velocity
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_UP] or pressed[pygame.K_w]:
-                self.player.vel_y = -PLAYER_MOVE_SPEED
+                self.player.vel_y = -Player.PLAYER_MOVE_SPEED
             elif pressed[pygame.K_DOWN] or pressed[pygame.K_s]:
-                self.player.vel_y = PLAYER_MOVE_SPEED
+                self.player.vel_y = Player.PLAYER_MOVE_SPEED
             else:
                 self.player.vel_y = 0
 
             if pressed[pygame.K_LEFT] or pressed[pygame.K_a]:
-                self.player.vel_x = -PLAYER_MOVE_SPEED
+                self.player.vel_x = -Player.PLAYER_MOVE_SPEED
             elif pressed[pygame.K_RIGHT] or pressed[pygame.K_d]:
-                self.player.vel_x = PLAYER_MOVE_SPEED
+                self.player.vel_x = Player.PLAYER_MOVE_SPEED
             else:
                 self.player.vel_x = 0
-
-            # if the player is moving diagonally, reduce the speed so its only as fast as moving in one direction
-            if abs(self.player.vel_x) + abs(self.player.vel_y) > PLAYER_MOVE_SPEED:
-                self.player.vel_x *= DIAGONAL_MOD
-                self.player.vel_y *= DIAGONAL_MOD
-
 
             ###########
             # Update game objects
@@ -214,8 +198,6 @@ class Game(object):
             # since the camera follows the player just set the world origin to the player's position
             self.world_x = int(-self.player.x + SCREEN_WIDTH * 0.5)
             self.world_y = int(-self.player.y + SCREEN_HEIGHT * 0.5)
-
-
 
             #########
             # draw

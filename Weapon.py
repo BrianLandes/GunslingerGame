@@ -33,7 +33,7 @@ class Weapon(object):
         self.spread = self.level*2  # an angle in degrees
         self.fire_rate = 0.2 - self.level * 0.01
 
-        self.next_upgrade = self.level * 100
+        self.next_upgrade = self.level * 200
 
     def Update(self):
         # Fire bullets
