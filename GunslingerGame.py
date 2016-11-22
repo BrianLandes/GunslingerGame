@@ -12,6 +12,8 @@ from GameObject import GameObject
 import GameObject
 # from GameObject import Tree
 from Enemy import Enemy
+from Bear import Bear
+from Explosion import Explosion
 from Weapon import Weapon
 import Player
 from Utilities import GetDistance
@@ -76,6 +78,11 @@ class Game(object):
         # Enemies
         self.enemy_generator = EnemyGenerator(self)
 
+        bear = Bear(self)
+        bear.x = -100
+        bear.y = -100
+        self.AddObject(bear)
+
         # Coin Generator
         self.coin_generator = CoinGenerator(self)
 
@@ -115,6 +122,13 @@ class Game(object):
         self.score += value
         if self.score >= self.weapon.next_upgrade:
             self.weapon.UpgradeWeapon()
+
+    def ExplodeObject(self, game_object):
+        # create an explosion on top of the given game_object
+        explosion = Explosion(self, game_object.radius*2)
+        explosion.x = game_object.x
+        explosion.y = game_object.y
+        self.AddObject(explosion)
 
     def Play(self):
         while self.playing:

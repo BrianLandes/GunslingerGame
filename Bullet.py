@@ -43,6 +43,7 @@ class Bullet(GameObject.GameObject):
         SX, SY = sprite.get_size()
         new_height = int(self.radius*2 * (SY/SX) )
         self.sprite = pygame.transform.scale( sprite, (self.radius*2,new_height) ).convert_alpha()
+        self.original_sprite = self.sprite
 
 
     def Draw(self):
@@ -63,4 +64,5 @@ class Bullet(GameObject.GameObject):
         # assumes that this is the first and only time the rotation will be changed
         # (since the rotate transformation is destructive and we're not keeping track of what we've rotated)
         theta = math.degrees( -GetAngle(self.vel_x,self.vel_y) )
-        self.sprite = pygame.transform.rotate(self.sprite, theta)
+        self.sprite = pygame.transform.rotate(self.original_sprite, theta)
+        

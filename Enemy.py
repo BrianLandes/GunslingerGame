@@ -95,6 +95,7 @@ class Enemy(GameObject.GameObject):
             if CheckObjectCollision( self, bullet ):
                 self.Destroy()
                 bullet.Destroy()
+                self.game.ExplodeObject(self)
                 # play the enemy death
                 # PlaySound(enemy_death_sfx)
                 break

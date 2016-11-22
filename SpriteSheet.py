@@ -32,6 +32,10 @@ class SpriteSheet(object):
                 new_sprite = self.sheet.subsurface(self.sheet.get_clip() )
                 self.sprites.append(new_sprite)
 
+    def GetSpriteSize(self):
+        width, height = self.sheet.get_size()
+        return width/self.dimensions[0],height/self.dimensions[1]
+
     def GetSprite(self,x,y):
         # where (0,0) is the top-left sprite
         columns = self.dimensions[0]
@@ -55,16 +59,22 @@ class SpriteAnimator(object):
     def __init__(self, filename, dimensions):
         self.sheet = SpriteSheet(filename,dimensions)
 
-
+        self.loop = True
         self.frames = []
         self.frame_index = 0
         self.frame_timer = 0.0
         self.last_time = time.time()
+        self.stopped = False
 
     def AddFrame(self, sprite_x, sprite_y, frame_time = 1/FRAME_RATE ):
         self.frames.append( (sprite_x, sprite_y, frame_time) )
 
+    def GetSpriteSize(self):
+        return self.sheet.GetSpriteSize()
+
     def UpdateAndDraw(self, surface, x, y ):
+        if self.stopped:
+            return
         current_time = time.time()
         delta_time = current_time - self.last_time
         sprite_x, sprite_y, frame_time = self.frames[self.frame_index]
@@ -78,7 +88,10 @@ class SpriteAnimator(object):
             self.frame_timer = 0
             self.frame_index +=1
             if self.frame_index >= len(self.frames):
-                self.frame_index = 0
+                if self.loop:
+                    self.frame_index = 0
+                else:
+                    self.stopped = True
 
         self.last_time = current_time
 
