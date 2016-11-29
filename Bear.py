@@ -16,7 +16,7 @@ from SpriteSheet import Animation
 
 import math,pygame,os,random
 
-ENEMY_SIZE = 35
+ENEMY_SIZE = 80
 ENEMY_SPRITE_SIZE = 300
 MIN_MOVE_SPEED = 5
 MAX_MOVE_SPEED = 11
@@ -56,12 +56,15 @@ class Bear(GameObject.GameObject):
 
         smash_animation = Animation()
         smash_animation.AddFrame(4,0)
-        smash_animation.AddFrame(5,0)
+        smash_animation.AddFrame(5,0, callback = self.FlipCallback )
         smash_animation.AddFrame(6,0, callback = self.SmashCallback )
         smash_animation.AddFrame(7,0)
         self.sprite.AddAnimation(smash_animation)
 
         self.growl_timer = 0.0
+
+        self.smash_distance = ENEMY_SPRITE_SIZE
+        self.smash_flip_pause = 0.0
 
 ##        sprite = random.choice(enemies_sprites)
         # we want to keep the original sprite's aspect ratio, but scale down to the bullet's size
@@ -84,10 +87,42 @@ class Bear(GameObject.GameObject):
         self.sprite.UpdateAndDraw( self.game.screen, x, y )
         # self.game.screen.blit(self.sprite, ( x,y ) )
 
+    def FlipCallback(self):
+        # this function gets called every time a certain frame of the animation plays
+        # every now and then we'll flip the bear
+        if self.smash_flip_pause <= 0 and random.randint(1,10) < 4:
+            self.smash_flip_pause = 2.0
+            self.sprite.Flip(True, False)
+
+
+
     def SmashCallback(self):
         # this function gets called everytime a certain frame of the animation plays
         # this will be the frame where the cowboy's body hits the ground and theres a sound effect and an explosion
-        print( 'smash' )
+
+        self.game.audio.PlaySmash()
+
+        # check the bear against trees
+        for tree in self.game.collision_layers[GameObject.STATIC]:
+            distance = GetDistance(self, tree)
+
+            if distance < self.smash_distance:
+                tree.Destroy()
+                self.game.ExplodeObject(tree)
+                self.game.audio.PlayTreeExplosion(distance)
+
+        # check each enemy against each other enemy
+        for other_enemy in self.game.collision_layers[GameObject.ENEMY]:
+            if other_enemy is self:
+                continue
+            distance = GetDistance(self, other_enemy)
+
+            if distance < self.smash_distance:
+                other_enemy.Destroy()
+                self.game.audio.PlayEnemyDeath(GetDistance(other_enemy,self.game.player))
+                self.game.ExplodeObject(other_enemy)
+
+        # self.smash_distance += 10
 
     def Update(self):
         # override the original GameObject.Update method
@@ -117,6 +152,8 @@ class Bear(GameObject.GameObject):
         else:
             self.vel_x = 0
             self.vel_y = 0
+
+        self.smash_flip_pause -= self.game.delta_time
 
         # call the game object's update method (applies our velocity)
         super().Update()

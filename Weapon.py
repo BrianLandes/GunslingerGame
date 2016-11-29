@@ -36,13 +36,14 @@ class Weapon(object):
         self.next_upgrade = self.level * 200
 
     def Update(self):
-        # Fire bullets
-        if self.fire_timer < self.fire_rate:
-            self.fire_timer += self.game.delta_time
-        if self.firing:
-            if self.fire_timer > self.fire_rate:
-                self.fire_timer -= self.fire_rate
-                self.Fire()
+        if not self.game.player.dead:
+            # Fire bullets
+            if self.fire_timer < self.fire_rate:
+                self.fire_timer += self.game.delta_time
+            if self.firing:
+                if self.fire_timer > self.fire_rate:
+                    self.fire_timer -= self.fire_rate
+                    self.Fire()
 
     def Fire(self):
 

@@ -27,65 +27,36 @@ GUNSHOT_VOLUME = 0.9
 # tree_explosion_volume = 0.9
 # music_volume = 0.5
 
+def LoadAllFilesInFolder(path):
+    results = []
+    for folderName, subfolders, filenames in os.walk(path):
+        # for each file we find in this folder
+        for filename in filenames:
+            #load a sound object and add it to our sfx list
+            sound = pygame.mixer.Sound(path+filename)
+            results.append( sound )
+
+    return results
+
 class GameAudio(object):
     def __init__(self):
         self.sound_channels = []
 
         # load some sounds
         # for the gunshots sfx we'll just load everything in the audio/gunshots folder
-        self.gunshot_sfx= []
-        for folderName, subfolders, filenames in os.walk('audio/gunshots'):
-            # for each file we find in this folder
-            for filename in filenames:
-                #load a sound object and add it to our sfx list
-                sound = pygame.mixer.Sound('audio/gunshots/'+filename)
-                # adjust the volume
-                # sound.set_volume(gunshot_volume)
-                self.gunshot_sfx.append( sound )
-
+        self.gunshot_sfx= LoadAllFilesInFolder('audio/gunshots/')
         self.gunshot_volume = GUNSHOT_VOLUME
         self.last_gunshot = time.time()
 
+        self.enemy_death_sfx= LoadAllFilesInFolder('audio/enemy_death/')
 
-        self.enemy_death_sfx= []
-        for folderName, subfolders, filenames in os.walk('audio/enemy_death'):
-            # for each file we find in this folder
-            for filename in filenames:
-                #load a sound object and add it to our sfx list
-                sound = pygame.mixer.Sound('audio/enemy_death/'+filename)
-                # adjust the volume
-                # sound.set_volume(enemy_death_volume)
-                self.enemy_death_sfx.append( sound )
+        self.tree_explosion_sfx= LoadAllFilesInFolder('audio/tree_explosion/')
 
-        self.tree_explosion_sfx= []
-        for folderName, subfolders, filenames in os.walk('audio/tree_explosion'):
-            # for each file we find in this folder
-            for filename in filenames:
-                #load a sound object and add it to our sfx list
-                sound = pygame.mixer.Sound('audio/tree_explosion/'+filename)
-                # adjust the volume
-                # sound.set_volume(tree_explosion_volume)
-                self.tree_explosion_sfx.append( sound )
+        self.coin_sfx= LoadAllFilesInFolder('audio/coins/')
 
-        self.coin_sfx= []
-        for folderName, subfolders, filenames in os.walk('audio/coins'):
-            # for each file we find in this folder
-            for filename in filenames:
-                #load a sound object and add it to our sfx list
-                sound = pygame.mixer.Sound('audio/coins/'+filename)
-                # adjust the volume
-                # sound.set_volume(tree_explosion_volume)
-                self.coin_sfx.append( sound )
+        self.bear_sfx = LoadAllFilesInFolder('audio/bear/')
 
-        self.bear_sfx= []
-        for folderName, subfolders, filenames in os.walk('audio/bear'):
-            # for each file we find in this folder
-            for filename in filenames:
-                #load a sound object and add it to our sfx list
-                sound = pygame.mixer.Sound('audio/bear/'+filename)
-                # adjust the volume
-                # sound.set_volume(tree_explosion_volume)
-                self.bear_sfx.append( sound )
+        self.smash_sfx = LoadAllFilesInFolder('audio/smash/')
 
         # self.music_track = pygame.mixer.music.load(
         #     '155139__burning-mir__action-music-loop-with-dark-ambient-drones.wav')
@@ -161,3 +132,6 @@ class GameAudio(object):
 
     def PlayCoin(self ):
         self.PlaySound(self.coin_sfx )
+
+    def PlaySmash(self ):
+        self.PlaySound(self.smash_sfx )
