@@ -35,7 +35,13 @@ class GameObject(object):
 
     def GetCollisionFlag(self, flag ):
         #defaults to False
-        self.collision_flags.get(flag,False)
+        return self.collision_flags.get(flag,False)
+
+    def IsEnemy(self):
+        return self.GetCollisionFlag( ENEMY )
+
+    def IsStatic(self):
+        return self.GetCollisionFlag( STATIC )
 
     def Draw(self):
         pygame.draw.circle(self.game.screen, self.color, (
@@ -67,25 +73,34 @@ TREE_EXPIRE_RANGE = 5000
 TREE_SIZE = 70
 TREE_SIZE_VARIANCE = 30 # + or - this many units in size randomly
 
-# trees will all reuse the same images so we only need to load it once
+loaded = False
 treeSprites = []
-for folderName, subfolders, filenames in os.walk('sprites/trees/'):
-    # for each file we find in this folder
-    for filename in filenames:
-        # sometimes Windows will make this file in your folders and we can't load that
-        if filename == 'Thumbs.db':
-            # so just skip it
-            continue
-        #load a sprite and add it to our availables sprites list
-        image = pygame.image.load('sprites/trees/'+filename)
-        treeSprites.append( image )
 
+def Load():
+    # trees will all reuse the same images so we only need to load it once
+    global treeSprites
+    treeSprites = []
+    for folderName, subfolders, filenames in os.walk('sprites/trees/'):
+        # for each file we find in this folder
+        for filename in filenames:
+            # sometimes Windows will make this file in your folders and we can't load that
+            if filename == 'Thumbs.db':
+                # so just skip it
+                continue
+            #load a sprite and add it to our availables sprites list
+            image = pygame.image.load('sprites/trees/'+filename).convert_alpha()
+            treeSprites.append( image )
 
+    global loaded
+    loaded = True
 
 class Tree(GameObject):
     def __init__(self, game):
         #override/extend the original constructor
         super().__init__(game)# call the original constructor
+
+        if not loaded:
+            Load()
 
         self.expire_range = TREE_EXPIRE_RANGE
         self.radius = int( TREE_SIZE + random.random()*TREE_SIZE_VARIANCE*2.0 - TREE_SIZE_VARIANCE)

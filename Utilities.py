@@ -105,3 +105,10 @@ def RandomVector( vx, vy, angle_variance, magnitude, magnitude_variance ):
     y = math.sin(theta) * m
     return x,y
 
+def RandomColorFromSurface( pygame_surface ):
+    width, height = pygame_surface.get_size()
+    x = random.randint(0,width-1)
+    y = random.randint(0,height-1)
+
+    color = pygame_surface.get_at((x,y))
+    return ( color )

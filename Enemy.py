@@ -7,6 +7,7 @@
 import GameObject
 from Utilities import GetAngle
 from Utilities import GetDistance
+from Utilities import Lerp
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
 from Utilities import RepositionBoth
@@ -16,7 +17,8 @@ import math,pygame,os,random
 
 ENEMY_SIZE = 25
 ENEMY_SPRITE_SIZE = 80
-ENEMY_MOVE_SPEED = 10.5
+MIN_MOVE_SPEED = 8
+MAX_MOVE_SPEED = 20
 
 enemies_sprites = []
 for folderName, subfolders, filenames in os.walk('sprites/enemies/'):
@@ -67,8 +69,14 @@ class Enemy(GameObject.GameObject):
 
         # make this enemy run towards the player
         theta = GetAngle( self.game.player.x - self.x, self.game.player.y - self.y )
-        self.vel_x = math.cos(theta ) * ENEMY_MOVE_SPEED
-        self.vel_y = math.sin(theta) * ENEMY_MOVE_SPEED
+
+        distance = GetDistance(self, self.game.player)
+        # cause the bear to move faster if the player is further away
+        lerp_value = distance/1000
+        speed = Lerp(lerp_value,MIN_MOVE_SPEED,MAX_MOVE_SPEED)
+
+        self.vel_x = math.cos(theta ) * speed
+        self.vel_y = math.sin(theta) * speed
 
         # right = self.vel_x > 0
         # if self.running_right is not right:
@@ -82,6 +90,8 @@ class Enemy(GameObject.GameObject):
         if CheckObjectCollision( self, self.game.player):
             # this will actually kill the player but for now just push them away
             Reposition( self, self.game.player )
+            # let's have the enemy slow the player down if they're touching
+            self.game.player.movement_penalty = 0.1
             # self.Destroy()
 
         # check each enemy against each other enemy

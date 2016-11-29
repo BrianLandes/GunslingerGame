@@ -61,6 +61,7 @@ class Coin(GameObject.GameObject):
             self.Destroy()
             # and give the player some points
             self.game.AddPoints(COIN_VALUE)
+            self.game.audio.PlayCoin()
 
 
     def RotateBasedOnVelocity(self):

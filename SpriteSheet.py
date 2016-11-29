@@ -55,19 +55,32 @@ class SpriteSheet(object):
 
 FRAME_RATE = 6 # X frames per second
 
+class Animation(object):
+    def __init__(self ):
+        self.frames = []
+        self.loop = True
+
+    def AddFrame(self, sprite_x, sprite_y, frame_time = 1/FRAME_RATE, callback = None ):
+        self.frames.append( (sprite_x, sprite_y, frame_time, callback) )
+
 class SpriteAnimator(object):
     def __init__(self, filename, dimensions):
         self.sheet = SpriteSheet(filename,dimensions)
 
-        self.loop = True
-        self.frames = []
+        self.animations = []
+        self.animation_index = 0
         self.frame_index = 0
         self.frame_timer = 0.0
         self.last_time = time.time()
         self.stopped = False
 
-    def AddFrame(self, sprite_x, sprite_y, frame_time = 1/FRAME_RATE ):
-        self.frames.append( (sprite_x, sprite_y, frame_time) )
+    def AddAnimation(self, animation):
+        self.animations.append(animation)
+
+    def PlayAnimation(self,index):
+        self.animation_index = index
+        self.frame_index = 0
+        self.frame_timer = 0
 
     def GetSpriteSize(self):
         return self.sheet.GetSpriteSize()
@@ -77,7 +90,8 @@ class SpriteAnimator(object):
             return
         current_time = time.time()
         delta_time = current_time - self.last_time
-        sprite_x, sprite_y, frame_time = self.frames[self.frame_index]
+        animation = self.animations[self.animation_index]
+        sprite_x, sprite_y, frame_time, callback = animation.frames[self.frame_index]
 
         sprite = self.sheet.GetSprite(sprite_x, sprite_y)
 
@@ -87,11 +101,14 @@ class SpriteAnimator(object):
         if self.frame_timer > frame_time:
             self.frame_timer = 0
             self.frame_index +=1
-            if self.frame_index >= len(self.frames):
-                if self.loop:
+            if self.frame_index >= len(animation.frames):
+                if animation.loop:
                     self.frame_index = 0
                 else:
                     self.stopped = True
+
+            if animation.frames[self.frame_index][3] is not None:
+                animation.frames[self.frame_index][3]()
 
         self.last_time = current_time
 

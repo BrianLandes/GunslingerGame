@@ -23,6 +23,7 @@ from EnemyGenerator import EnemyGenerator
 from CoinGenerator import CoinGenerator
 from TreeList import TreeList
 from Backdrop import Backdrop
+from Particle import ParticleSystem
 
 
 ############
@@ -65,6 +66,9 @@ class Game(object):
         # Background
         self.backdrop = Backdrop(self)
 
+        # Particle system
+        self.particle_system = ParticleSystem(self)
+
         # Player
         self.player = Player.Player(self) # gotta pass it a reference to the Game class
 
@@ -84,8 +88,8 @@ class Game(object):
         self.enemy_generator = EnemyGenerator(self)
 
         bear = Bear(self)
-        bear.x = -100
-        bear.y = -100
+        bear.x = -1000
+        bear.y = -1000
         self.AddObject(bear)
 
         bomb = Bomb(self)
@@ -135,16 +139,21 @@ class Game(object):
 
     def ExplodeObject(self, game_object):
         # create an explosion on top of the given game_object
-        explosion = Explosion(self, game_object.radius*2)
-        explosion.x = game_object.x
-        explosion.y = game_object.y
-        self.AddObject(explosion)
+        # explosion = Explosion(self, game_object.radius*2)
+        # explosion.x = game_object.x
+        # explosion.y = game_object.y
+        # self.AddObject(explosion)
+
+        if game_object.IsEnemy():
+            self.particle_system.EnemyExplode(game_object.x,game_object.y,game_object.radius)
+        else:
+            self.particle_system.TreeExplode(game_object)
 
     def Play(self):
         while self.playing:
             # lets keep track of how much time has passed between the last frame and this one
             current_time = time.time()
-            self.delta_time = current_time - self.last_time
+            self.delta_time = current_time - self.last_time #should be in seconds
             # if are game is running faster than our target FPS then pause for a tick
             if self.delta_time < 1/TARGET_FPS:
                 continue
@@ -168,20 +177,7 @@ class Game(object):
             self.mouse_x, self.mouse_y = pygame.mouse.get_pos()
 
             # Check for key presses and update the player's velocity
-            pressed = pygame.key.get_pressed()
-            if pressed[pygame.K_UP] or pressed[pygame.K_w]:
-                self.player.vel_y = -Player.PLAYER_MOVE_SPEED
-            elif pressed[pygame.K_DOWN] or pressed[pygame.K_s]:
-                self.player.vel_y = Player.PLAYER_MOVE_SPEED
-            else:
-                self.player.vel_y = 0
 
-            if pressed[pygame.K_LEFT] or pressed[pygame.K_a]:
-                self.player.vel_x = -Player.PLAYER_MOVE_SPEED
-            elif pressed[pygame.K_RIGHT] or pressed[pygame.K_d]:
-                self.player.vel_x = Player.PLAYER_MOVE_SPEED
-            else:
-                self.player.vel_x = 0
 
             ###########
             # Update game objects

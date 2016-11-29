@@ -5,7 +5,7 @@ import pygame
 import math
 from Utilities import GetAngle
 
-PLAYER_MOVE_SPEED = 10
+PLAYER_MOVE_SPEED = 8
 PLAYER_RADIUS = 25
 
 DIAGONAL_MOD = math.sqrt(2)/2
@@ -25,6 +25,7 @@ class Player(GameObject.GameObject):
         new_height = int(self.radius*2 * (SY/SX) )
         self.sprite = pygame.transform.scale( sprite, (self.radius*2,new_height) ).convert_alpha()
 
+        self.movement_penalty = 1.0
 
     def Draw(self):
         # override the original GameObject.Update method
@@ -40,6 +41,24 @@ class Player(GameObject.GameObject):
         self.game.screen.blit(sprite, ( x,y ) )
 
     def Update(self):
+
+        movespeed = PLAYER_MOVE_SPEED * self.movement_penalty
+
+        pressed = pygame.key.get_pressed()
+        if pressed[pygame.K_UP] or pressed[pygame.K_w]:
+            self.vel_y = -movespeed
+        elif pressed[pygame.K_DOWN] or pressed[pygame.K_s]:
+            self.vel_y = movespeed
+        else:
+            self.vel_y = 0
+
+        if pressed[pygame.K_LEFT] or pressed[pygame.K_a]:
+            self.vel_x = -movespeed
+        elif pressed[pygame.K_RIGHT] or pressed[pygame.K_d]:
+            self.vel_x = movespeed
+        else:
+            self.vel_x = 0
+
         # if the player is moving diagonally, reduce the speed so its only as fast as moving in one direction
         if abs(self.vel_x) + abs(self.vel_y) > PLAYER_MOVE_SPEED:
             self.vel_x *= DIAGONAL_MOD
@@ -52,6 +71,8 @@ class Player(GameObject.GameObject):
         # override the original GameObject.Update method
         # call the game object's update method (applies our velocity)
         super().Update()
+
+        self.movement_penalty = 1.0
 
     # def RotateBasedOnVelocity(self):
     #     # modifies the sprite of this game object -> sets rotation based on the velocity
