@@ -1,0 +1,11 @@
+
+-bullets have a lifespan
+-terrain texture
+-bullets spawn and fire parallel
+-bears speed affected by distance to player
+-bombs
+-sound
+-gradually changing probabilities of sprites
+-pop up points on collecting coins and killing enemies
+-bullets bounce off bear better
+	-new velocity is vector from bear's center to bullet

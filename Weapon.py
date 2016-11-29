@@ -64,10 +64,11 @@ class Weapon(object):
             newBullet.vel_x = math.cos(angle + spread_dif * i) * Bullet.BULLET_MOVE_SPEED
             newBullet.vel_y = math.sin(angle + spread_dif * i) * Bullet.BULLET_MOVE_SPEED
             newBullet.RotateBasedOnVelocity()
-            newBullet.vel_x += self.game.player.vel_x
-            newBullet.vel_y += self.game.player.vel_y
-        # # play the gunshot
-        # PlaySound(gunshot_sfx)
+            # newBullet.vel_x += self.game.player.vel_x
+            # newBullet.vel_y += self.game.player.vel_y
+
+        # play the gunshot
+        self.game.audio.PlayGunshot()
 
     def SpawnBullet(self):
         newBullet = Bullet.Bullet(self.game)

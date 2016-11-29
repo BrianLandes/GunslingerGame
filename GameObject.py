@@ -14,7 +14,8 @@ STATIC = 1
 ENEMY = 2
 BULLET = 3
 COIN = 4
-COL_FLAGS = [PLAYER,STATIC,ENEMY,BULLET,COIN]
+BOMB = 5
+COL_FLAGS = [PLAYER,STATIC,ENEMY,BULLET,COIN,BOMB]
 
 class GameObject(object):
     def __init__(self, game):

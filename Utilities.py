@@ -40,6 +40,18 @@ def GetDistance( gameObjectA, gameObjectB ):
     return math.sqrt( x**2 + y**2 )
 
 
+def Lerp(value, a, b):
+    # takes 3 floats where
+    # value is between 0.0 and 1.0
+    # and returns a float equal to a if value is 0.0
+    # or b if value is 1.0
+    # or a float between a and b based on value
+
+    real_max = max(a,b)
+    real_min = min(a,b)
+    dif = real_max - real_min
+    return real_min + dif * value
+
 def Distance( x1,y1,x2,y2 ):
     # returns the distance between the two points
     x = x1 - x2

@@ -6,6 +6,7 @@
 # from GameObject import GameObject
 import GameObject
 from Utilities import GetAngle
+from Utilities import GetDistance
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
 from Utilities import RepositionBoth
@@ -97,5 +98,5 @@ class Enemy(GameObject.GameObject):
                 bullet.Destroy()
                 self.game.ExplodeObject(self)
                 # play the enemy death
-                # PlaySound(enemy_death_sfx)
+                self.game.audio.PlayEnemyDeath(GetDistance(self,self.game.player))
                 break

@@ -6,6 +6,8 @@
 # from GameObject import GameObject
 import GameObject
 from Utilities import GetAngle
+from Utilities import GetDistance
+from Utilities import Lerp
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
 from Utilities import RepositionBoth
@@ -15,7 +17,10 @@ import math,pygame,os,random
 
 ENEMY_SIZE = 35
 ENEMY_SPRITE_SIZE = 180
-ENEMY_MOVE_SPEED = 6.5
+MIN_MOVE_SPEED = 5
+MAX_MOVE_SPEED = 11
+
+GROWL_TIME = 10.0
 
 ##enemies_sprites = []
 ##for folderName, subfolders, filenames in os.walk('sprites/enemies/'):
@@ -45,6 +50,8 @@ class Bear(GameObject.GameObject):
         self.sprite.AddFrame(2,0)
         self.sprite.AddFrame(3,0)
 
+        self.growl_timer = 0.0
+
 ##        sprite = random.choice(enemies_sprites)
         # we want to keep the original sprite's aspect ratio, but scale down to the bullet's size
 ##        SX, SY = sprite.get_size()
@@ -69,10 +76,16 @@ class Bear(GameObject.GameObject):
     def Update(self):
         # override the original GameObject.Update method
 
+
+
         # make this enemy run towards the player
         theta = GetAngle( self.game.player.x - self.x, self.game.player.y - self.y )
-        self.vel_x = math.cos(theta ) * ENEMY_MOVE_SPEED
-        self.vel_y = math.sin(theta) * ENEMY_MOVE_SPEED
+        distance = GetDistance(self, self.game.player)
+        # cause the bear to move faster if the player is further away
+        lerp_value = distance/1000
+        speed = Lerp(lerp_value,MIN_MOVE_SPEED,MAX_MOVE_SPEED)
+        self.vel_x = math.cos(theta ) * speed
+        self.vel_y = math.sin(theta) * speed
 
         right = self.vel_x > 0
         if self.running_right is not right:
@@ -100,13 +113,15 @@ class Bear(GameObject.GameObject):
             if CheckObjectCollision( self, tree ):
                 tree.Destroy()
                 self.game.ExplodeObject(tree)
+                self.game.audio.PlayTreeExplosion(distance)
 
         # Check if this enemy was hit with a bullet
         for bullet in self.game.collision_layers[GameObject.BULLET]:
             if CheckObjectCollision( self, bullet ):
-                swap = bullet.vel_x
-                bullet.vel_x = -bullet.vel_y
-                bullet.vel_y = swap
+                theta = GetAngle(bullet.x-self.x,bullet.y-self.y)
+                speed = math.sqrt( bullet.vel_x**2 + bullet.vel_y**2 )
+                bullet.vel_x = math.cos(theta) * speed
+                bullet.vel_y = math.sin(theta) * speed
                 Reposition(bullet,self)
                 bullet.RotateBasedOnVelocity()
                 # self.Destroy()
@@ -114,3 +129,9 @@ class Bear(GameObject.GameObject):
                 # play the enemy death
                 # PlaySound(enemy_death_sfx)
                 break
+
+        # play a bear sound effect every so often
+        self.growl_timer -= self.game.delta_time
+        if self.growl_timer <= 0.0:
+            self.growl_timer = GROWL_TIME + GROWL_TIME* random.random()
+            self.game.audio.PlayBearNoise(distance)

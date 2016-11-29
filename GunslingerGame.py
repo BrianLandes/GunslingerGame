@@ -13,6 +13,7 @@ import GameObject
 # from GameObject import Tree
 from Enemy import Enemy
 from Bear import Bear
+from Bomb import Bomb
 from Explosion import Explosion
 from Weapon import Weapon
 import Player
@@ -21,6 +22,7 @@ from LevelGenerator import LevelGenerator
 from EnemyGenerator import EnemyGenerator
 from CoinGenerator import CoinGenerator
 from TreeList import TreeList
+from Backdrop import Backdrop
 
 
 ############
@@ -60,6 +62,9 @@ class Game(object):
         self.world_x = 0
         self.world_y = 0
 
+        # Background
+        self.backdrop = Backdrop(self)
+
         # Player
         self.player = Player.Player(self) # gotta pass it a reference to the Game class
 
@@ -82,6 +87,11 @@ class Game(object):
         bear.x = -100
         bear.y = -100
         self.AddObject(bear)
+
+        bomb = Bomb(self)
+        bomb.x = -100
+        bomb.y = 400
+        self.AddObject(bomb)
 
         # Coin Generator
         self.coin_generator = CoinGenerator(self)
@@ -217,6 +227,9 @@ class Game(object):
             # draw
             # clear the screen
             self.screen.fill((220, 220, 200))
+
+            # draw the ground layer
+            self.backdrop.Draw()
 
             # sort the objects
             object_sort_tree = TreeList()
