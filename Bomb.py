@@ -6,6 +6,7 @@
 # from GameObject import GameObject
 import GameObject
 from Utilities import GetAngle
+from Utilities import GetDistance
 from Utilities import CheckObjectCollision
 from Utilities import Reposition
 from Utilities import RepositionBoth
@@ -13,7 +14,8 @@ from SpriteSheet import SpriteSheet
 
 import math,os,pygame,random
 
-SIZE = 80
+SPRITE_SIZE = 30
+SIZE = 200
 EXPIRE_RANGE = 5000
 
 class Bomb(GameObject.GameObject):
@@ -22,7 +24,7 @@ class Bomb(GameObject.GameObject):
         super().__init__(game)# call the original constructor
 
         self.color = (225,0,0)
-        self.radius = SIZE
+        self.radius = SPRITE_SIZE
         self.expire_range = EXPIRE_RANGE
         self.SetCollisionFlag( GameObject.BOMB )
 
@@ -47,6 +49,25 @@ class Bomb(GameObject.GameObject):
         # check collision against bullets
         for bullet in self.game.collision_layers[GameObject.BULLET]:
             if CheckObjectCollision( self, bullet ):
-                self.game.ExplodeObject(self)
-                self.Destroy()
+                self.Detonate()
 
+    def Detonate(self):
+        self.game.ExplodeObject(self)
+        self.Destroy()
+        # check the trees
+        for tree in self.game.collision_layers[GameObject.STATIC]:
+            distance = GetDistance(self, tree)
+
+            if distance - tree.radius < SIZE:
+                tree.Destroy()
+                self.game.ExplodeObject(tree)
+                self.game.audio.PlayTreeExplosion(distance)
+
+        # check each enemy against each other enemy
+        for other_enemy in self.game.collision_layers[GameObject.ENEMY]:
+            distance = GetDistance(self, other_enemy)
+
+            if distance - other_enemy.radius < SIZE:
+                other_enemy.Destroy()
+                self.game.audio.PlayEnemyDeath(GetDistance(other_enemy,self.game.player))
+                self.game.ExplodeObject(other_enemy)

@@ -3,7 +3,9 @@
 
 # this class handles the generation of the enemies
 
+from Bear import Bear
 from Enemy import Enemy
+import FloatingText
 import random, math
 
 MIN_SPAWN_RATE = 1/5 # 1 every 5 seconds
@@ -12,12 +14,14 @@ SPAWN_ACCELERATION = 0.0001
 # SPAWN_RATE = 0.2 # every 2 seconds
 # SPAWN_DIR_CHANGE = math.pi / 200
 SPAWN_ANGLE_VARIANCE = math.pi * 0.125 # upto 90 degrees in either direction
-SPAWN_DISTANCE = 600
+SPAWN_DISTANCE = 1200
 MIN_STATE_TIME = 3 # seconds
 MAX_STATE_TIME = 3 # seconds
 MIN_SPIN_SPEED = 0.005
 MAX_SPIN_SPEED = 0.01
-WARM_UP_TIME = 1 # give the player X seconds into the start of the game before we start spawning enemies
+WARM_UP_TIME = 6 # give the player X seconds into the start of the game before we start spawning enemies
+
+BEAR_SPAWN_TIME = 16
 
 #### State constants
 WARM_UP = 0
@@ -29,6 +33,9 @@ class EnemyGenerator(object):
     def __init__(self,game):
         self.game = game # a reference to the GunslingerGame class
 
+        self.first_game_pop_up = False
+        self.first_game_pop_up_bear = False
+
         self.spawn_timer = 0.0
         self.spawn_rate = MIN_SPAWN_RATE
         self.spawning_direction = random.random() * 2.0 * math.pi # a random direction 0 - 360
@@ -37,10 +44,47 @@ class EnemyGenerator(object):
         self.total_state_time = WARM_UP_TIME
         self.spin_speed = 0.0
         self.bonus = 0.0
+        self.spawned_bear = False
+        self.bear_timer = 0.0
+
+    def Reset(self):
+        self.spawn_timer = 0.0
+        self.spawn_rate = MIN_SPAWN_RATE
+        self.spawning_direction = random.random() * 2.0 * math.pi # a random direction 0 - 360
+        self.state = WARM_UP
+        self.state_timer = 0.0
+        self.total_state_time = WARM_UP_TIME
+        self.spin_speed = 0.0
+        self.bonus = 0.0
+        self.spawned_bear = False
+        self.bear_timer = 0.0
 
     def Update(self):
         self.state_timer
         self.state_timer += self.game.delta_time
+
+        if not self.spawned_bear:
+            self.bear_timer += self.game.delta_time
+            if self.bear_timer > BEAR_SPAWN_TIME:
+                self.spawned_bear = True
+                bear = Bear(self.game)
+                variance = random.random() * 2.0 * SPAWN_ANGLE_VARIANCE - SPAWN_ANGLE_VARIANCE
+                theta = self.spawning_direction + variance
+                bear.x = self.game.player.x + math.cos(theta) * SPAWN_DISTANCE
+                bear.y = self.game.player.y + math.sin(theta) * SPAWN_DISTANCE
+                self.game.AddObject( bear)
+
+                self.game.bear = bear
+
+                if not self.first_game_pop_up_bear:
+                    floating_text = FloatingText.New(self.game, (127,55,51), "Don't let the Beast",
+                                    self.game.width*0.7, self.game.height*0.3,
+                                             line2 = "CATCH YOU",  target_object=bear,life=6)
+                    self.game.AddObject(floating_text)
+
+                    self.first_game_pop_up_bear = True
+                
+        
         if self.state_timer > self.total_state_time:
             self.state = random.choice( [ SPIN_CW, SPIN_CCW, WAIT ] )
             # set a timer for some random time between the min and max
@@ -77,3 +121,11 @@ class EnemyGenerator(object):
         newEnemy.x = self.game.player.x + math.cos(theta) * SPAWN_DISTANCE
         newEnemy.y = self.game.player.y + math.sin(theta) * SPAWN_DISTANCE
         self.game.AddObject( newEnemy)
+
+        # have the very first enemy have some pop up text
+        if not self.first_game_pop_up:
+            floating_text = FloatingText.New(self.game, (255,255,255), "Use the mouse to aim",
+                                self.game.width*0.6, self.game.height*0.2,
+                                         line2 = "and shoot creeps",  target_object=newEnemy)
+            self.game.AddObject(floating_text)
+            self.first_game_pop_up = True

@@ -161,7 +161,7 @@ class Bear(GameObject.GameObject):
         # check this enemy against the player
         if CheckObjectCollision( self, self.game.player):
             # this will actually kill the player but for now just push them away
-            Reposition( self, self.game.player )
+            # Reposition( self, self.game.player )
             self.sprite.PlayAnimation(1)
             self.game.player.Destroy()
 
@@ -188,9 +188,15 @@ class Bear(GameObject.GameObject):
                 bullet.vel_y = math.sin(theta) * speed
                 Reposition(bullet,self)
                 bullet.RotateBasedOnVelocity()
+                bullet.life *= 0.5
                 # self.Destroy()
                 # bullet.Destroy()
                 # play the enemy death
                 # PlaySound(enemy_death_sfx)
                 break
 
+    def Destroy(self):
+        self.dead = True
+        self.game.game_objects.remove(self)
+        self.game.enemy_generator.spawned_bear = False
+        self.game.enemy_generator.bear_timer = 0.0

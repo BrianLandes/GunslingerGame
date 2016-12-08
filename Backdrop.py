@@ -11,8 +11,7 @@ class Backdrop(object):
         self.game = game
 
         self.image = pygame.image.load(image_path).convert_alpha()
-        self.ih, self.iw = self.image.get_size() # these might be backwards but this image is a square so oh well
-
+        self.iw , self.ih= self.image.get_size()
     def Draw(self):
         self.game.screen.blit(self.image, (self.game.world_x%self.iw,self.game.world_y%self.ih) )
         self.game.screen.blit(self.image, (self.game.world_x%self.iw - self.iw,self.game.world_y%self.ih) )

@@ -12,6 +12,7 @@ from Utilities import CheckObjectCollision
 from Utilities import Reposition
 from Utilities import RepositionBoth
 from SpriteSheet import SpriteAnimator
+import FloatingText
 
 import math,pygame,os,random
 
@@ -20,22 +21,35 @@ ENEMY_SPRITE_SIZE = 80
 MIN_MOVE_SPEED = 8
 MAX_MOVE_SPEED = 20
 
+POINT_VALUE = 1
+
+FLIP_SPEED = 0.3
+
+initialized = False
 enemies_sprites = []
-for folderName, subfolders, filenames in os.walk('sprites/enemies/'):
-    # for each file we find in this folder
-    for filename in filenames:
-        # sometimes Windows will make this file in your folders and we can't load that
-        if filename == 'Thumbs.db':
-            # so just skip it
-            continue
-        #load a sprite and add it to our availables sprites list
-        image = pygame.image.load('sprites/enemies/'+filename)
-        enemies_sprites.append( image )
+def Initialize():
+    global enemies_sprites
+    for folderName, subfolders, filenames in os.walk('sprites/enemies/'):
+        # for each file we find in this folder
+        for filename in filenames:
+            # sometimes Windows will make this file in your folders and we can't load that
+            if filename == 'Thumbs.db':
+                # so just skip it
+                continue
+            #load a sprite and add it to our availables sprites list
+            image = pygame.image.load('sprites/enemies/'+filename).convert_alpha()
+            enemies_sprites.append( image )
+
+    global initialized
+    initialized = True
 
 class Enemy(GameObject.GameObject):
     def __init__(self, game):
         #override/extend the original constructor
         super().__init__(game)# call the original constructor
+
+        if not initialized:
+            Initialize()
 
         self.color = (225,0,0)
         self.radius = ENEMY_SIZE
@@ -52,9 +66,10 @@ class Enemy(GameObject.GameObject):
         # we want to keep the original sprite's aspect ratio, but scale down to the bullet's size
         SX, SY = sprite.get_size()
         new_height = int(self.radius*2 * (SY/SX) )
-        self.sprite = pygame.transform.scale( sprite, (self.radius*2,new_height) ).convert_alpha()
-
-        self.running_right = True # to keep track of whether our sprite is/should be flipped
+        self.sprite = [ pygame.transform.scale( sprite, (self.radius*2,new_height) ).convert_alpha() ]
+        self.sprite.append( pygame.transform.flip( self.sprite[0], True, False ) )
+        self.flipped = True # to keep track of whether our sprite is/should be flipped
+        self.flip_timer = 0.0
 
     def Draw(self):
         # override the original GameObject.Update method
@@ -62,7 +77,8 @@ class Enemy(GameObject.GameObject):
         x = int(self.x + self.game.world_x - self.radius)
         y = int(self.y + self.game.world_y - self.radius )
         # self.sprite.UpdateAndDraw( self.game.screen, x, y )
-        self.game.screen.blit(self.sprite, ( x,y ) )
+        sprite = self.sprite[self.flipped]
+        self.game.screen.blit(sprite, ( x,y ) )
 
     def Update(self):
         # override the original GameObject.Update method
@@ -78,10 +94,10 @@ class Enemy(GameObject.GameObject):
         self.vel_x = math.cos(theta ) * speed
         self.vel_y = math.sin(theta) * speed
 
-        # right = self.vel_x > 0
-        # if self.running_right is not right:
-        #     self.sprite.Flip(True, False)
-        #     self.running_right = right
+        self.flip_timer += self.game.delta_time
+        while self.flip_timer > FLIP_SPEED:
+            self.flipped = not self.flipped
+            self.flip_timer -= FLIP_SPEED
 
         # call the game object's update method (applies our velocity)
         super().Update()
@@ -109,4 +125,11 @@ class Enemy(GameObject.GameObject):
                 self.game.ExplodeObject(self)
                 # play the enemy death
                 self.game.audio.PlayEnemyDeath(GetDistance(self,self.game.player))
+                self.game.AddPoints(POINT_VALUE)
+                floating_text = FloatingText.New(self.game, (255,247,84), "+%d"%POINT_VALUE,
+                                    self.game.width*0.3, self.game.height*0.2,life=1)
+                floating_text.x = self.x
+                floating_text.y = self.y-50
+                self.game.AddObject(floating_text)
+
                 break

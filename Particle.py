@@ -4,6 +4,7 @@ import pygame
 import random
 import math
 from Utilities import RandomColorFromSurface
+import Bomb
 
 SPEED = 3
 
@@ -20,6 +21,17 @@ class ParticleSystem(object):
                              (255,47,33),
                              (0,178,73),
                              (33,255,123),]
+
+        self.bomb_colors = [(250,95,28),
+                            (250,95,28),
+                            (250,95,28),
+                            (250,95,28),
+                            (250,95,28),
+                            (247,223,91),
+                            (247,223,91),
+                            (247,223,91),
+                            (52,46,46),]
+    
         pass
 
     # def CreateNew(self,x,y,size):
@@ -32,7 +44,7 @@ class ParticleSystem(object):
 
     def EnemyExplode(self,x,y,size):
         # the number of particles is based on the radius of the circle
-        num_part = math.ceil(math.pi * size **2 * 0.02)
+        num_part = math.ceil(math.pi * size **2 * 0.01)
         for i in range( num_part ):
             particle = self.GetParticle()
             r = random.random() * size
@@ -48,7 +60,7 @@ class ParticleSystem(object):
 
     def TreeExplode(self,tree_object):
         # the number of particles is based on the radius of the circle
-        num_part = math.ceil(math.pi * tree_object.radius **2 * 0.01)
+        num_part = math.ceil(math.pi * tree_object.radius **2 * 0.007)
         for i in range( num_part ):
             particle = self.GetParticle()
             r = random.random() * tree_object.radius
@@ -60,6 +72,22 @@ class ParticleSystem(object):
             color = RandomColorFromSurface(tree_object.sprite)
             while color[3] == 0:
                 color = RandomColorFromSurface(tree_object.sprite)
+            size = random.randint(5,20)
+            particle.Set(part_x,part_y,vel_x,vel_y,color,size,0.6)
+            self.game.AddObject(particle)
+
+    def BombExplode(self,x,y):
+        # the number of particles is based on the radius of the circle
+        num_part = math.ceil(math.pi * Bomb.SIZE **2 * 0.003)
+        for i in range( num_part ):
+            particle = self.GetParticle()
+            r = random.random() * Bomb.SIZE
+            theta = random.random() * math.pi * 2.0
+            part_x = x + math.cos(theta) * r
+            part_y = y + math.sin(theta) * r
+            vel_x = random.random()*math.cos(theta)*SPEED
+            vel_y = random.random()*math.sin(theta)*SPEED
+            color = random.choice( self.bomb_colors )
             size = random.randint(5,20)
             particle.Set(part_x,part_y,vel_x,vel_y,color,size,0.6)
             self.game.AddObject(particle)

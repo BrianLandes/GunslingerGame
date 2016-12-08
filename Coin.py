@@ -3,7 +3,7 @@
 # Final Project
 # October 27, 2016
 
-# from GameObject import GameObject
+import FloatingText
 import GameObject
 from Utilities import GetAngle
 from Utilities import CheckObjectCollision
@@ -62,6 +62,11 @@ class Coin(GameObject.GameObject):
             # and give the player some points
             self.game.AddPoints(COIN_VALUE)
             self.game.audio.PlayCoin()
+            floating_text = FloatingText.New(self.game, (255,247,84), "+%d"%COIN_VALUE,
+                                    self.game.width*0.3, self.game.height*0.2,life=1)
+            floating_text.x = self.x
+            floating_text.y = self.y-50
+            self.game.AddObject(floating_text)
 
 
     def RotateBasedOnVelocity(self):

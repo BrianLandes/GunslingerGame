@@ -22,6 +22,7 @@ class GameObject(object):
         self.game = game # a reference to the GunslingerGame class
         self.x = 0
         self.y = 0
+        self.z = 0
         self.vel_x = 0
         self.vel_y = 0
         self.radius = 20
@@ -43,6 +44,9 @@ class GameObject(object):
     def IsStatic(self):
         return self.GetCollisionFlag( STATIC )
 
+    def IsBomb(self):
+        return self.GetCollisionFlag( BOMB )
+
     def Draw(self):
         pygame.draw.circle(self.game.screen, self.color, (
             int(self.x + self.game.world_x),
@@ -51,14 +55,19 @@ class GameObject(object):
 
     def Destroy(self):
         self.dead = True
-        self.game.game_objects.remove(self)
+        try:
+            self.game.game_objects.remove(self)
+        except ValueError:
+            print( self.__class__.__name__, 'was trying to destroy itself but failed' )
+
+
 
     def Update(self):
         self.x += self.vel_x
         self.y += self.vel_y
 
         # if this object gets far enough away from the player we can remove it and stop worrying about it
-        if self.expire_range > 0:  # only if the expire range is set to a positive number
+        if self.expire_range > 0 and not self.dead:  # only if the expire range is set to a positive number
             d = GetDistance(self.game.player, self)  # get the distance to the player
             if d > self.expire_range:
                 # remove it from the game_objects list (if we were iterating
@@ -106,6 +115,8 @@ class Tree(GameObject):
         self.radius = int( TREE_SIZE + random.random()*TREE_SIZE_VARIANCE*2.0 - TREE_SIZE_VARIANCE)
         sprite = random.choice(treeSprites)
         self.sprite = pygame.transform.scale( sprite, (self.radius*2,self.radius*2) )
+        if random.random() > 0.5:
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
         # self.sprite = treeSprite
         self.SetCollisionFlag( STATIC )
 

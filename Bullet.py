@@ -17,6 +17,8 @@ BULLET_SIZE = 20
 BULLET_MOVE_SPEED = 20
 BULLET_EXPIRE_RANGE = 600
 
+LIFE_TIME = 1
+
 bullet_sprites = []
 for folderName, subfolders, filenames in os.walk('sprites/bullets/'):
     # for each file we find in this folder
@@ -44,7 +46,7 @@ class Bullet(GameObject.GameObject):
         new_height = int(self.radius*2 * (SY/SX) )
         self.sprite = pygame.transform.scale( sprite, (self.radius*2,new_height) ).convert_alpha()
         self.original_sprite = self.sprite
-
+        self.life = LIFE_TIME
 
     def Draw(self):
         # override the original GameObject.Update method
@@ -53,10 +55,13 @@ class Bullet(GameObject.GameObject):
         y = int(self.y + self.game.world_y - self.radius )
         self.game.screen.blit(self.sprite, ( x,y ) )
 
-    # def Update(self):
-    #     # override the original GameObject.Update method
-    #     # call the game object's update method (applies our velocity)
-    #     super().Update()
+    def Update(self):
+        # override the original GameObject.Update method
+        # call the game object's update method (applies our velocity)
+        super().Update()
+        self.life -= self.game.delta_time
+        if self.life< 0.0 and not self.dead:
+            self.Destroy()
 
 
     def RotateBasedOnVelocity(self):

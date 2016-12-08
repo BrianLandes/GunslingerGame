@@ -26,6 +26,19 @@ class Weapon(object):
 
         self.next_upgrade = 100
 
+    def Reset(self):
+        self.type = GATLING_GUN
+        self.firing = False
+        self.fire_timer = 0.0
+
+        self.level = 0
+        self.bullet_rate = 0
+        self.spread = 0  # an angle in degrees
+        self.fire_rate = 0
+        self.UpgradeWeapon()
+
+        self.next_upgrade = 100
+
     def UpgradeWeapon(self):
         self.level += 1
 
