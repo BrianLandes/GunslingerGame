@@ -45,6 +45,8 @@ class FloatingText(GameObject.GameObject):
         self.z = 9999
 
     def Draw(self):
+        if self.game.paused:
+            return
         # pygame.draw.circle(self.game.screen, self.color, (
         #     int(self.x + self.game.world_x),
         #     int(self.y + self.game.world_y ) ),

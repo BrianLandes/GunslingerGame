@@ -87,6 +87,14 @@ def Reposition( objectA, objectB ):
     objectA.x = objectB.x + math.cos(theta) * r
     objectA.y = objectB.y + math.sin(theta) * r
 
+def RandomPointInCircle( radius ):
+    theta = random.random() * 360
+    magnitude = random.random() * radius
+    # turn our angle and magnitude into a vector
+    x = math.cos(theta) * magnitude
+    y = math.sin(theta) * magnitude
+    return x,y
+
 def RandomVector( vx, vy, angle_variance, magnitude, magnitude_variance ):
     # returns a vector with a similar direction to vector <vx, vy>
     # with the direction randomized by + or - up to angle_variance (in radians)
@@ -112,3 +120,17 @@ def RandomColorFromSurface( pygame_surface ):
 
     color = pygame_surface.get_at((x,y))
     return ( color )
+
+def RandomValueFromProbabilities(values,probs):
+    # takes two lists which are one to one
+    # returns one entry from 'values' based
+    # on a random float and the probabilities in probs (which DO NOT necessarily add up to 1.0)
+    total_p = sum(probs)
+    lottery = random.random() * total_p
+    num = 0
+    i = 0
+    for value in values:
+        num += probs[i]
+        if num >= lottery:
+            return value
+        i += 1

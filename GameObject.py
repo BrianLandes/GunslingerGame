@@ -53,8 +53,16 @@ class GameObject(object):
             int(self.y + self.game.world_y ) ),
             int(self.radius) )
 
+
+    def DebugDraw(self):
+        pygame.draw.circle(self.game.screen, self.color, (
+            int(self.x + self.game.world_x),
+            int(self.y + self.game.world_y ) ),
+            int(self.radius) )
+
     def Destroy(self):
         self.dead = True
+        self.game.needs_sorting = True
         try:
             self.game.game_objects.remove(self)
         except ValueError:
@@ -77,61 +85,6 @@ class GameObject(object):
 #########
 # Trees
 
-# constants
-TREE_EXPIRE_RANGE = 5000
-TREE_SIZE = 70
-TREE_SIZE_VARIANCE = 30 # + or - this many units in size randomly
 
-loaded = False
-treeSprites = []
 
-def Load():
-    # trees will all reuse the same images so we only need to load it once
-    global treeSprites
-    treeSprites = []
-    for folderName, subfolders, filenames in os.walk('sprites/trees/'):
-        # for each file we find in this folder
-        for filename in filenames:
-            # sometimes Windows will make this file in your folders and we can't load that
-            if filename == 'Thumbs.db':
-                # so just skip it
-                continue
-            #load a sprite and add it to our availables sprites list
-            image = pygame.image.load('sprites/trees/'+filename).convert_alpha()
-            treeSprites.append( image )
 
-    global loaded
-    loaded = True
-
-class Tree(GameObject):
-    def __init__(self, game):
-        #override/extend the original constructor
-        super().__init__(game)# call the original constructor
-
-        if not loaded:
-            Load()
-
-        self.expire_range = TREE_EXPIRE_RANGE
-        self.radius = int( TREE_SIZE + random.random()*TREE_SIZE_VARIANCE*2.0 - TREE_SIZE_VARIANCE)
-        sprite = random.choice(treeSprites)
-        self.sprite = pygame.transform.scale( sprite, (self.radius*2,self.radius*2) )
-        if random.random() > 0.5:
-            self.sprite = pygame.transform.flip(self.sprite,True,False)
-        # self.sprite = treeSprite
-        self.SetCollisionFlag( STATIC )
-
-    def Draw(self):
-        # override the original GameObject.Update method
-        # our (x,y) is the center, but it blits to the top left
-        x = int(self.x + self.game.world_x - self.radius)
-        y = int(self.y + self.game.world_y - self.radius )
-        self.game.screen.blit(self.sprite, ( x,y ) )
-
-    def Update(self):
-        # override the original GameObject.Update method
-        # we'll still call the original
-        super().Update() # updates position and checks for expiration
-        # trees also need to check themselves for collision with the player and reposition the player
-        if CheckObjectCollision(self,self.game.player):
-            # move just the player so there is no more collision
-            Reposition(self.game.player, self)

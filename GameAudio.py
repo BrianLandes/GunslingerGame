@@ -8,7 +8,7 @@ import time
 
 ############
 # lay out some constants here
-NUM_SOUND_CHANNELS =32 # the max number of sound fx that can be playing at once
+NUM_SOUND_CHANNELS =64 # the max number of sound fx that can be playing at once
 
 ###########
 # initialization
@@ -19,10 +19,11 @@ pygame.mixer.set_num_channels(NUM_SOUND_CHANNELS)
 ### use this to hard code mute the audio
 MUTE_AUDIO = False
 
-MAX_DISTANCE = 800
+MAX_DISTANCE = 1500
 
 ## adjust volumes
-GUNSHOT_VOLUME = 0.9
+MIN_GUNSHOT_VOLUME = 0.1
+MAX_GUNSHOT_VOLUME = 0.3
 # enemy_death_volume = 0.9
 # tree_explosion_volume = 0.9
 # music_volume = 0.5
@@ -45,7 +46,7 @@ class GameAudio(object):
         # load some sounds
         # for the gunshots sfx we'll just load everything in the audio/gunshots folder
         self.gunshot_sfx= LoadAllFilesInFolder('audio/gunshots/')
-        self.gunshot_volume = GUNSHOT_VOLUME
+        self.gunshot_volume = MAX_GUNSHOT_VOLUME
         self.last_gunshot = time.time()
 
         self.enemy_death_sfx= LoadAllFilesInFolder('audio/enemy_death/')
@@ -57,6 +58,8 @@ class GameAudio(object):
         self.bear_sfx = LoadAllFilesInFolder('audio/bear/')
 
         self.smash_sfx = LoadAllFilesInFolder('audio/smash/')
+
+        self.bomb_sfx = LoadAllFilesInFolder('audio/bomb_explosion/')
 
         # self.music_track = pygame.mixer.music.load(
         #     '155139__burning-mir__action-music-loop-with-dark-ambient-drones.wav')
@@ -82,7 +85,11 @@ class GameAudio(object):
         # print( len(channels) )
 
         if distance is not None:
-            sound_fx.set_volume((MAX_DISTANCE - distance) / MAX_DISTANCE)
+            dif = MAX_DISTANCE - distance
+            v = dif / MAX_DISTANCE
+            if v <= 0:
+                v = 0.01
+            sound_fx.set_volume(v)
 
         if volume is not None:
             # setting volume will override the distance
@@ -105,15 +112,17 @@ class GameAudio(object):
         difference = gunshot_time - self.last_gunshot
         # if the last one was within a small period of time
 
-        if difference < 0.3:
+        if difference < 0.1:
+            return
+        elif difference < 0.3:
 
             # adjust our gunshot volume (so that new ones are quieter)
             self.gunshot_volume -= 0.08
             # but don't let it get too low
-            if self.gunshot_volume <= 0.3:
-                self.gunshot_volume = 0.3
+            if self.gunshot_volume <= MIN_GUNSHOT_VOLUME:
+                self.gunshot_volume = MIN_GUNSHOT_VOLUME
         else:
-            self.gunshot_volume = GUNSHOT_VOLUME
+            self.gunshot_volume = MAX_GUNSHOT_VOLUME
 
 
         # print( self.gunshot_volume)
@@ -135,3 +144,7 @@ class GameAudio(object):
 
     def PlaySmash(self ):
         self.PlaySound(self.smash_sfx )
+
+    def PlayBomb(self ):
+        pygame.mixer.stop()
+        self.PlaySound(self.bomb_sfx )

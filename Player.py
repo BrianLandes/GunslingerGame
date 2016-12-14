@@ -7,7 +7,7 @@ import math
 from Utilities import GetAngle
 
 PLAYER_MOVE_SPEED = 8
-PLAYER_RADIUS = 25
+PLAYER_RADIUS = 20
 
 DIAGONAL_MOD = math.sqrt(2)/2
 
@@ -15,6 +15,7 @@ PI_EIGHTS = math.pi * (1/8)
 
 SPRITE_WIDTH = 70
 SPRITE_H_W_RATIO = 3/2
+VERTICAL_OFFSET = -20
 
 class Player(GameObject.GameObject):
     def __init__(self, game, gender):
@@ -34,7 +35,7 @@ class Player(GameObject.GameObject):
         self.gender = gender
 
         self.movement_penalty = 1.0
-
+        self.theta = 0.0
         self.LoadSprites(gender)
 
     def ScaleSprite(self,path):
@@ -49,10 +50,10 @@ class Player(GameObject.GameObject):
             self.back_standing = self.ScaleSprite('sprites/player/cowboy_6.00.png')
             self.left_standing = self.ScaleSprite('sprites/player/cowboy_4.00.png')
             self.right_standing = self.ScaleSprite('sprites/player/cowboy_1.00.png')
-            self.upleft_standing = self.ScaleSprite('sprites/player/cowboy_5.00.png')
-            self.upright_standing = self.ScaleSprite('sprites/player/cowboy_2.00.png')
-            self.downleft_standing = pygame.image.load('sprites/player/cowboy_8.00.png')
-            self.downright_standing = pygame.image.load('sprites/player/cowboy_7.00.png')
+            self.upleft_standing = self.ScaleSprite('sprites/player/cowboy_8.00.png')
+            self.upright_standing = self.ScaleSprite('sprites/player/cowboy_7.00.png')
+            self.downleft_standing = self.ScaleSprite('sprites/player/cowboy_5.00.png')
+            self.downright_standing = self.ScaleSprite('sprites/player/cowboy_2.00.png')
 
             animTypes = '6 3 1 4 2 5 7 8'.split()
             self.animObjs = {}
@@ -84,17 +85,26 @@ class Player(GameObject.GameObject):
         self.moveConductor.scale((SPRITE_WIDTH,int(SPRITE_WIDTH*SPRITE_H_W_RATIO)))
 
     def Draw(self):
+        # self.DebugDraw()
+
         # override the original GameObject.Update method
         # our (x,y) is the center, but it blits to the top right
         x = int(self.x + self.game.world_x - SPRITE_WIDTH*0.5)
         y = int(self.y + self.game.world_y - SPRITE_WIDTH*SPRITE_H_W_RATIO*0.75 )
         moving = (self.vel_x**2 + self.vel_y**2) > 0.0001
         # theta = math.degrees( -GetAngle(self.game.mouse_x -x, self.game.mouse_y -y) -math.pi*0.5 )
-        theta = GetAngle(self.game.mouse_x -x, self.game.mouse_y -y)
+        theta = self.theta
+        if not self.game.paused:
+            theta = GetAngle(self.game.mouse_x -(self.x + self.game.world_x),
+                    self.game.mouse_y - (self.y + self.game.world_y))
+            self.theta = theta
 
         if moving:
             # draw the correct walking/running sprite from the animation object
-            self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
+            if not self.game.paused:
+                self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
+            else:
+                self.moveConductor.pause()
                 # walking
             if -5*PI_EIGHTS < theta < -3*PI_EIGHTS: # UP
                 self.animObjs['3'].blit(self.game.screen, (x, y))

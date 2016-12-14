@@ -2,9 +2,10 @@
 # Final Project
 # Spawns obstacles as the player moves through the level
 import math, random
+from Player import *
 from Utilities import Distance
 from Utilities import RandomVector
-from GameObject import Tree
+from Tree import Tree
 
 # types of obstacle generation
 SCATTER = 0 # generates obstacles randomly in the path of the player
@@ -30,8 +31,8 @@ class LevelGenerator(object):
 
         # save the position of the player each time we spawn something
         # we'll use it (and the new position of the player) to determine when to spawn the next thing
-        self.last_spawn_position_x = game.player.x
-        self.last_spawn_position_y = game.player.y
+        self.last_spawn_position_x = 0
+        self.last_spawn_position_y = 0
 
     def Update(self):
         self.Scatter()
@@ -80,8 +81,18 @@ class LevelGenerator(object):
 
         # if that distance is less than our spawning distance we'll spawn another obstacle to try and stay ahead
         if d < self.snake_max_spawn_distance:
+            tree = Tree(self.game)
+
+            level_mod = PLAYER_RADIUS*0.3 * (self.game.level-1)
+            if level_mod >= PLAYER_RADIUS*3.0:
+                level_mod = PLAYER_RADIUS*3.0
+            magnitude = tree.radius + self.last_spawned_obstacle.radius+PLAYER_RADIUS*2.5-level_mod
+            mag_variance = PLAYER_RADIUS*2.0
+            if self.game.level >= 4:
+                mag_variance = max(0,mag_variance - PLAYER_RADIUS*0.2 * (self.game.level-13))
+
             rx, ry = RandomVector(self.snake_vx,self.snake_vy,self.snake_angle_variance,
-                                  self.last_spawned_obstacle.radius*3.0, 100 )
+                                  magnitude, mag_variance )
 
             newx = self.last_spawned_obstacle.x + rx
             newy = self.last_spawned_obstacle.y + ry
@@ -90,7 +101,7 @@ class LevelGenerator(object):
             while Distance( newx, newy, self.game.player.x, self.game.player.y ) < self.scatter_spawning_distance:
                 # if the tree would spawn where the player can see then try to find another place
                 rx, ry = RandomVector(self.snake_vx,self.snake_vy,self.snake_angle_variance,
-                                  self.last_spawned_obstacle.radius*2.0, 10 )
+                                  magnitude, mag_variance )
 
                 newx = self.last_spawned_obstacle.x + rx
                 newy = self.last_spawned_obstacle.y + ry
@@ -100,7 +111,7 @@ class LevelGenerator(object):
                     # print('Snake giving up')
                     return # not only break out of the loop but give up on making a tree
 
-            tree = Tree(self.game)
+
             tree.x = newx
             tree.y = newy
             self.game.AddObject(tree)
@@ -112,3 +123,70 @@ class LevelGenerator(object):
 
         # elif d > self.snake_max_spawn_distance:
         #     self.last_spawned_obstacle = None
+
+# class Snake():
+#     def __init__(self,generator):
+#         self.generator = generator
+#         self.game = generator.game
+#
+#         self.angle_variance = math.pi * 0.25
+#         # self.snake_min_spawn_distance = 200
+#         self.min_spawn_distance = 1000
+#         self.max_spawn_distance = 1300
+#
+#         self.last_spawned_obstacle = None
+#         self.vx = 0
+#         self.vy = 0
+#
+#         # save the position of the player each time we spawn something
+#         # we'll use it (and the new position of the player) to determine when to spawn the next thing
+#         self.last_spawn_position_x = self.game.player.x
+#         self.last_spawn_position_y = self.game.player.y
+#
+#     def Update(self):
+#         # elif self.type is SNAKE:
+#         if self.last_spawned_obstacle is None:
+#             return
+#         # get the distance between the player and the last spawned object
+#         d = Distance( self.last_spawned_obstacle.x, self.last_spawned_obstacle.y,
+#                       self.game.player.x, self.game.player.y)
+#
+#         tree = Tree(self.game)
+#
+#         magnitude = tree.radius + self.last_spawned_obstacle.radius+PLAYER_RADIUS
+#         mag_variance = PLAYER_RADIUS*2.0
+#
+#         # if that distance is less than our spawning distance we'll spawn another obstacle to try and stay ahead
+#         if d < self.max_spawn_distance:
+#             rx, ry = RandomVector(self.vx,self.vy,self.angle_variance,
+#                                   magnitude, mag_variance )
+#
+#             newx = self.last_spawned_obstacle.x + rx
+#             newy = self.last_spawned_obstacle.y + ry
+#
+#             tries_left = 10
+#             while Distance( newx, newy, self.game.player.x, self.game.player.y ) < self.min_spawn_distance:
+#                 # if the tree would spawn where the player can see then try to find another place
+#                 rx, ry = RandomVector(self.snake_vx,self.snake_vy,self.angle_variance,
+#                                   self.last_spawned_obstacle.radius*2.0, 10 )
+#
+#                 newx = self.last_spawned_obstacle.x + rx
+#                 newy = self.last_spawned_obstacle.y + ry
+#                 tries_left -= 1
+#                 if tries_left is 0:
+#                     self.last_spawned_obstacle = None
+#                     # print('Snake giving up')
+#                     return # not only break out of the loop but give up on making a tree
+#
+#
+#             tree.x = newx
+#             tree.y = newy
+#             self.game.AddObject(tree)
+#
+#             self.snake_vx = newx - self.last_spawned_obstacle.x
+#             self.snake_vy = newy - self.last_spawned_obstacle.y
+#             self.last_spawned_obstacle = tree
+#
+#
+#         # elif d > self.snake_max_spawn_distance:
+#         #     self.last_spawned_obstacle = None

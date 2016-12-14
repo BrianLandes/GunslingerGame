@@ -54,6 +54,9 @@ class Bomb(GameObject.GameObject):
     def Detonate(self):
         self.game.ExplodeObject(self)
         self.Destroy()
+
+        self.game.audio.PlayBomb()
+
         # check the trees
         for tree in self.game.collision_layers[GameObject.STATIC]:
             distance = GetDistance(self, tree)
@@ -61,7 +64,7 @@ class Bomb(GameObject.GameObject):
             if distance - tree.radius < SIZE:
                 tree.Destroy()
                 self.game.ExplodeObject(tree)
-                self.game.audio.PlayTreeExplosion(distance)
+                # self.game.audio.PlayTreeExplosion(distance)
 
         # check each enemy against each other enemy
         for other_enemy in self.game.collision_layers[GameObject.ENEMY]:

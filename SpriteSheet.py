@@ -112,6 +112,17 @@ class SpriteAnimator(object):
 
         self.last_time = current_time
 
+    def Draw(self, surface, x, y ):
+        if self.stopped:
+            return
+
+        animation = self.animations[self.animation_index]
+        sprite_x, sprite_y, frame_time, callback = animation.frames[self.frame_index]
+
+        sprite = self.sheet.GetSprite(sprite_x, sprite_y)
+
+        surface.blit(sprite, (x,y) )
+
     def Resize(self,sprite_width,sprite_height):
         self.sheet.Resize(sprite_width,sprite_height)
 

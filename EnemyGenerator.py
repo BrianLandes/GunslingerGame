@@ -7,21 +7,24 @@ from Bear import Bear
 from Enemy import Enemy
 import FloatingText
 import random, math
+from Utilities import *
 
-MIN_SPAWN_RATE = 1/5 # 1 every 5 seconds
-MAX_SPAWN_RATE = 5/1 # 5 per second
+MIN_SPAWN_RATE = 1/6 # 1 every 5 seconds
+MAX_SPAWN_RATE = 20/1 # 5 per second
 SPAWN_ACCELERATION = 0.0001
 # SPAWN_RATE = 0.2 # every 2 seconds
 # SPAWN_DIR_CHANGE = math.pi / 200
 SPAWN_ANGLE_VARIANCE = math.pi * 0.125 # upto 90 degrees in either direction
-SPAWN_DISTANCE = 1200
+SPAWN_DISTANCE = 1300
+
 MIN_STATE_TIME = 3 # seconds
-MAX_STATE_TIME = 3 # seconds
-MIN_SPIN_SPEED = 0.005
+MAX_STATE_TIME = 6 # seconds
+MIN_SPIN_SPEED = 0.0005
 MAX_SPIN_SPEED = 0.01
 WARM_UP_TIME = 6 # give the player X seconds into the start of the game before we start spawning enemies
 
 BEAR_SPAWN_TIME = 16
+BEAR_SPAWN_DISTANCE = 1000
 
 #### State constants
 WARM_UP = 0
@@ -45,7 +48,7 @@ class EnemyGenerator(object):
         self.spin_speed = 0.0
         self.bonus = 0.0
         self.spawned_bear = False
-        self.bear_timer = 0.0
+        self.bear_timer = BEAR_SPAWN_TIME
 
     def Reset(self):
         self.spawn_timer = 0.0
@@ -57,32 +60,38 @@ class EnemyGenerator(object):
         self.spin_speed = 0.0
         self.bonus = 0.0
         self.spawned_bear = False
-        self.bear_timer = 0.0
+        self.bear_timer = BEAR_SPAWN_TIME
+        self.rebear = 0
 
     def Update(self):
-        self.state_timer
         self.state_timer += self.game.delta_time
 
         if not self.spawned_bear:
-            self.bear_timer += self.game.delta_time
-            if self.bear_timer > BEAR_SPAWN_TIME:
-                self.spawned_bear = True
-                bear = Bear(self.game)
-                variance = random.random() * 2.0 * SPAWN_ANGLE_VARIANCE - SPAWN_ANGLE_VARIANCE
-                theta = self.spawning_direction + variance
-                bear.x = self.game.player.x + math.cos(theta) * SPAWN_DISTANCE
-                bear.y = self.game.player.y + math.sin(theta) * SPAWN_DISTANCE
-                self.game.AddObject( bear)
+            self.bear_timer -= self.game.delta_time
+            if self.bear_timer < 0.0:
+                # for i in range(self.game.level):
+                for i in range(1):
+                    self.spawned_bear = True
+                    bear = Bear(self.game)
+                    variance = random.random() * 2.0 * SPAWN_ANGLE_VARIANCE - SPAWN_ANGLE_VARIANCE
+                    direction = GetAngle(self.game.player.vel_x,self.game.player.vel_y)
+                    theta = direction + variance
+                    dis = BEAR_SPAWN_DISTANCE
+                    bear.x = self.game.player.x + math.cos(theta) * dis
+                    bear.y = self.game.player.y + math.sin(theta) * dis
 
-                self.game.bear = bear
+                    self.game.AddObject( bear)
 
-                if not self.first_game_pop_up_bear:
-                    floating_text = FloatingText.New(self.game, (127,55,51), "Don't let the Beast",
-                                    self.game.width*0.7, self.game.height*0.3,
-                                             line2 = "CATCH YOU",  target_object=bear,life=6)
-                    self.game.AddObject(floating_text)
+                    self.game.bear = bear
 
-                    self.first_game_pop_up_bear = True
+                    if not self.first_game_pop_up_bear:
+                        floating_text = FloatingText.New(self.game, (127,55,51), "Don't let the Beast",
+                                        self.game.width*0.7, self.game.height*0.3,
+                                                 line2 = "CATCH YOU",  target_object=bear,life=6
+                                                         ,target_offset=-200)
+                        self.game.AddObject(floating_text)
+
+                        self.first_game_pop_up_bear = True
                 
         
         if self.state_timer > self.total_state_time:

@@ -107,6 +107,7 @@ class Particle(GameObject.GameObject):
         self.color = (225,0,0)
         self.radius = self.start_radius = 10
         self.life = self.start_life = 6.0
+        self.expire_range = 800
 
     def Set(self,x,y,vel_x,vel_y,color,radius,life):
         self.x = x
@@ -131,14 +132,17 @@ class Particle(GameObject.GameObject):
 
         self.life -= self.game.delta_time
 
-        if self.life <= 0.0:
+        if self.life <= 0.0 and not self.dead:
             self.Destroy()
             return
 
         self.radius = self.start_radius*(self.life/self.start_life)
 
     def Destroy(self):
+        if self.dead:
+            return
         self.dead = True
+        self.game.needs_sorting = True
         self.game.game_objects.remove(self)
         # recycle the particle into the particle pool
         self.system.pool.append(self)

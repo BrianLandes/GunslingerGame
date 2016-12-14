@@ -3,6 +3,7 @@
 # Spawns coins as the player moves through the level
 from Coin import Coin
 import FloatingText
+from GameObject import *
 from Utilities import Distance
 from Utilities import RandomVector
 import math
@@ -13,15 +14,15 @@ class CoinGenerator(object):
     def __init__(self, game):
         self.game = game # a reference to the GunslingerGame class
 
-        self.spawn_rate = 600 # distance the player must move each time we spawn
+        self.spawn_rate = 800 # distance the player must move each time we spawn
         self.scatter_angle_variance = math.pi * 0.125 # up to 45 degrees in either direction
         self.scatter_spawning_distance = 1100
         self.distance_variance = 100
 
         # save the position of the player each time we spawn something
         # we'll use it (and the new position of the player) to determine when to spawn the next thing
-        self.last_spawn_position_x = game.player.x
-        self.last_spawn_position_y = game.player.y
+        self.last_spawn_position_x = 0
+        self.last_spawn_position_y = 0
 
         self.warm_up_time = 0
 
@@ -40,7 +41,11 @@ class CoinGenerator(object):
         self.last_spawn_position_x = self.game.player.x
         self.last_spawn_position_y = self.game.player.y
 
-        self.first_time_pop_up = False
+        # self.first_time_pop_up = False
+
+        for game_object in self.game.game_objects:
+            if game_object.GetCollisionFlag(COIN):
+                game_object.Destroy()
 
     def Update(self):
         # get the distance the players moved since we last spawned something

@@ -3,16 +3,11 @@
 # Final Project
 # October 27, 2016
 
-# from GameObject import GameObject
+from Coin import Coin
 import GameObject
-from Utilities import GetAngle
-from Utilities import GetDistance
-from Utilities import Lerp
-from Utilities import CheckObjectCollision
-from Utilities import Reposition
-from Utilities import RepositionBoth
-from SpriteSheet import SpriteAnimator
-from SpriteSheet import Animation
+from SpriteSheet import *
+from Utilities import *
+
 
 import math,pygame,os,random
 
@@ -20,6 +15,8 @@ ENEMY_SIZE = 80
 ENEMY_SPRITE_SIZE = 300
 MIN_MOVE_SPEED = 5
 MAX_MOVE_SPEED = 11
+
+DROPS_COINS = 8
 
 GROWL_TIME = 10.0
 
@@ -43,7 +40,7 @@ class Bear(GameObject.GameObject):
         self.color = (225,0,0)
         self.radius = ENEMY_SIZE
         self.SetCollisionFlag( GameObject.ENEMY )
-        self.sprite = SpriteAnimator('sprites/bear2/sheet.png', (8,1) )
+        self.sprite = SpriteAnimator('sprites/bear2/sheet.png', (4,3) )
         swidth, sheight = self.sprite.GetSpriteSize()
         self.sprite.Resize(ENEMY_SPRITE_SIZE,int(ENEMY_SPRITE_SIZE*sheight/swidth))
 
@@ -55,22 +52,19 @@ class Bear(GameObject.GameObject):
         self.sprite.AddAnimation(run_animation)
 
         smash_animation = Animation()
-        smash_animation.AddFrame(4,0)
-        smash_animation.AddFrame(5,0, callback = self.FlipCallback )
-        smash_animation.AddFrame(6,0, callback = self.SmashCallback )
-        smash_animation.AddFrame(7,0)
+
+        r = self.game.player_gender
+
+        smash_animation.AddFrame(0,r)
+        smash_animation.AddFrame(1,r, callback = self.FlipCallback )
+        smash_animation.AddFrame(2,r, callback = self.SmashCallback )
+        smash_animation.AddFrame(3,r)
         self.sprite.AddAnimation(smash_animation)
 
         self.growl_timer = 0.0
 
         self.smash_distance = ENEMY_SPRITE_SIZE
         self.smash_flip_pause = 0.0
-
-##        sprite = random.choice(enemies_sprites)
-        # we want to keep the original sprite's aspect ratio, but scale down to the bullet's size
-##        SX, SY = sprite.get_size()
-##        new_height = int(self.radius*2 * (SY/SX) )
-##        self.sprite = pygame.transform.scale( sprite, (self.radius*2,new_height) ).convert_alpha()
 
         self.running_right = True # to keep track of whether our sprite is/should be flipped
 
@@ -84,7 +78,10 @@ class Bear(GameObject.GameObject):
         # our (x,y) is the center, but it blits to the top right
         x = int(self.x + self.game.world_x - ENEMY_SPRITE_SIZE*0.5)
         y = int(self.y + self.game.world_y - ENEMY_SPRITE_SIZE*0.5 )
-        self.sprite.UpdateAndDraw( self.game.screen, x, y )
+        if not self.game.paused:
+            self.sprite.UpdateAndDraw(self.game.screen,x,y)
+        else:
+            self.sprite.Draw( self.game.screen, x, y )
         # self.game.screen.blit(self.sprite, ( x,y ) )
 
     def FlipCallback(self):
@@ -127,7 +124,6 @@ class Bear(GameObject.GameObject):
     def Update(self):
         # override the original GameObject.Update method
 
-
         if not self.game.player.dead:
             # make this enemy run towards the player
             theta = GetAngle( self.game.player.x - self.x, self.game.player.y - self.y )
@@ -135,6 +131,7 @@ class Bear(GameObject.GameObject):
             # cause the bear to move faster if the player is further away
             lerp_value = distance/1000
             speed = Lerp(lerp_value,MIN_MOVE_SPEED,MAX_MOVE_SPEED)
+
             self.vel_x = math.cos(theta ) * speed
             self.vel_y = math.sin(theta) * speed
 
@@ -197,6 +194,16 @@ class Bear(GameObject.GameObject):
 
     def Destroy(self):
         self.dead = True
+        self.game.needs_sorting = True
         self.game.game_objects.remove(self)
         self.game.enemy_generator.spawned_bear = False
-        self.game.enemy_generator.bear_timer = 0.0
+        self.game.enemy_generator.bear_timer = 20
+        # self.game.enemy_generator.rebear += 1
+        if not self.game.player.dead:
+            self.game.NextLevel()
+            for i in range(DROPS_COINS):
+                coin = Coin(self.game)
+                x,y = RandomPointInCircle(self.radius)
+                coin.x = self.x + x
+                coin.y = self.y + y
+                self.game.AddObject(coin)
