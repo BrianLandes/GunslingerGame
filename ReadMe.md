@@ -5,9 +5,9 @@ An endless twin-stick shooter where you are forever chased by a giant bear monst
 Gunslinger Game was written in Python using PyGame for a programming class at the University of Utah fall 2016. It was a group final project consisting of myself and Makenzie Matthews. Some of the graphics and sounds are public domain assets, but most, such as the player and the enemies, were created by us.
 
 #### Controls / How to Play
-*Use WASD or the arrow keys to move your character around.
-*Use the mouse/cursor to aim and shoot your gun.
-*Use ESC to pause or unpause the game.
+- Use WASD or the arrow keys to move your character around
+- Use the mouse/cursor to aim and shoot your gun.
+- Use ESC to pause or unpause the game.
 
 *Note: the game will keep your mouse within the window (so that you don't accidentely click out of the game while your swinging around shooting).*
 
